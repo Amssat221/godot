@@ -10,6 +10,7 @@
 		Since instances may have any behavior, the AABB used for visibility must be provided by the user.
 	</description>
 	<tutorials>
+		<link>http://docs.godotengine.org/en/latest/tutorials/3d/vertex_animation/animating_thousands_of_fish.html</link>
 	</tutorials>
 	<demos>
 	</demos>
@@ -48,6 +49,14 @@
 				Return the transform of a specific instance.
 			</description>
 		</method>
+		<method name="get_instance_transform_2d" qualifiers="const">
+			<return type="Transform2D">
+			</return>
+			<argument index="0" name="instance" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="set_instance_color">
 			<return type="void">
 			</return>
@@ -57,6 +66,7 @@
 			</argument>
 			<description>
 				Set the color of a specific instance.
+				For the color to take effect, ensure that [member color_format] is non-[code]null[/code] on the [code]MultiMesh[/code] and [member SpatialMaterial.vertex_color_use_as_albedo] is [code]true[/code] on the material.
 			</description>
 		</method>
 		<method name="set_instance_custom_data">
@@ -79,6 +89,16 @@
 			</argument>
 			<description>
 				Set the transform for a specific instance.
+			</description>
+		</method>
+		<method name="set_instance_transform_2d">
+			<return type="void">
+			</return>
+			<argument index="0" name="instance" type="int">
+			</argument>
+			<argument index="1" name="transform" type="Transform2D">
+			</argument>
+			<description>
 			</description>
 		</method>
 	</methods>

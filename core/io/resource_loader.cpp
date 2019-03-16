@@ -30,7 +30,7 @@
 
 #include "resource_loader.h"
 
-#include "core/io/resource_import.h"
+#include "core/io/resource_importer.h"
 #include "core/os/file_access.h"
 #include "core/os/os.h"
 #include "core/path_remap.h"
@@ -55,7 +55,7 @@ Error ResourceInteractiveLoader::wait() {
 
 ResourceInteractiveLoader::~ResourceInteractiveLoader() {
 	if (path_loading != String()) {
-		ResourceLoader::_remove_from_loading_map(path_loading);
+		ResourceLoader::_remove_from_loading_map_and_thread(path_loading, path_loading_thread);
 	}
 }
 
@@ -293,10 +293,14 @@ bool ResourceLoader::_add_to_loading_map(const String &p_path) {
 		loading_map_mutex->lock();
 	}
 
-	if (loading_map.has(p_path)) {
+	LoadingMapKey key;
+	key.path = p_path;
+	key.thread = Thread::get_caller_id();
+
+	if (loading_map.has(key)) {
 		success = false;
 	} else {
-		loading_map[p_path] = true;
+		loading_map[key] = true;
 		success = true;
 	}
 
@@ -312,7 +316,27 @@ void ResourceLoader::_remove_from_loading_map(const String &p_path) {
 		loading_map_mutex->lock();
 	}
 
-	loading_map.erase(p_path);
+	LoadingMapKey key;
+	key.path = p_path;
+	key.thread = Thread::get_caller_id();
+
+	loading_map.erase(key);
+
+	if (loading_map_mutex) {
+		loading_map_mutex->unlock();
+	}
+}
+
+void ResourceLoader::_remove_from_loading_map_and_thread(const String &p_path, Thread::ID p_thread) {
+	if (loading_map_mutex) {
+		loading_map_mutex->lock();
+	}
+
+	LoadingMapKey key;
+	key.path = p_path;
+	key.thread = p_thread;
+
+	loading_map.erase(key);
 
 	if (loading_map_mutex) {
 		loading_map_mutex->unlock();
@@ -471,6 +495,7 @@ Ref<ResourceInteractiveLoader> ResourceLoader::load_interactive(const String &p_
 
 			ril->resource = res_cached;
 			ril->path_loading = local_path;
+			ril->path_loading_thread = Thread::get_caller_id();
 			return ril;
 		}
 	}
@@ -499,6 +524,7 @@ Ref<ResourceInteractiveLoader> ResourceLoader::load_interactive(const String &p_
 		if (!p_no_cache) {
 			ril->set_local_path(local_path);
 			ril->path_loading = local_path;
+			ril->path_loading_thread = Thread::get_caller_id();
 		}
 
 		if (xl_remapped)
@@ -602,6 +628,31 @@ bool ResourceLoader::is_import_valid(const String &p_path) {
 		*/
 
 		return loader[i]->is_import_valid(p_path);
+	}
+
+	return false; //not found
+}
+
+bool ResourceLoader::is_imported(const String &p_path) {
+
+	String path = _path_remap(p_path);
+
+	String local_path;
+	if (path.is_rel_path())
+		local_path = "res://" + path;
+	else
+		local_path = ProjectSettings::get_singleton()->localize_path(path);
+
+	for (int i = 0; i < loader_count; i++) {
+
+		if (!loader[i]->recognize_path(local_path))
+			continue;
+		/*
+		if (p_type_hint!="" && !loader[i]->handles_type(p_type_hint))
+			continue;
+		*/
+
+		return loader[i]->is_imported(p_path);
 	}
 
 	return false; //not found
@@ -879,9 +930,9 @@ bool ResourceLoader::add_custom_resource_format_loader(String script_path) {
 
 void ResourceLoader::remove_custom_resource_format_loader(String script_path) {
 
-	Ref<ResourceFormatLoader> loader = _find_custom_resource_format_loader(script_path);
-	if (loader.is_valid())
-		remove_resource_format_loader(loader);
+	Ref<ResourceFormatLoader> custom_loader = _find_custom_resource_format_loader(script_path);
+	if (custom_loader.is_valid())
+		remove_resource_format_loader(custom_loader);
 }
 
 void ResourceLoader::add_custom_loaders() {
@@ -895,7 +946,7 @@ void ResourceLoader::add_custom_loaders() {
 	for (List<StringName>::Element *E = global_classes.front(); E; E = E->next()) {
 
 		StringName class_name = E->get();
-		StringName base_class = ScriptServer::get_global_class_base(class_name);
+		StringName base_class = ScriptServer::get_global_class_native_base(class_name);
 
 		if (base_class == custom_loader_base_class) {
 			String path = ScriptServer::get_global_class_path(class_name);
@@ -919,7 +970,7 @@ void ResourceLoader::remove_custom_loaders() {
 }
 
 Mutex *ResourceLoader::loading_map_mutex = NULL;
-HashMap<String, int> ResourceLoader::loading_map;
+HashMap<ResourceLoader::LoadingMapKey, int, ResourceLoader::LoadingMapKeyHasher> ResourceLoader::loading_map;
 
 void ResourceLoader::initialize() {
 #ifndef NO_THREADS
@@ -929,9 +980,9 @@ void ResourceLoader::initialize() {
 
 void ResourceLoader::finalize() {
 #ifndef NO_THREADS
-	const String *K = NULL;
+	const LoadingMapKey *K = NULL;
 	while ((K = loading_map.next(K))) {
-		ERR_PRINTS("Exited while resource is being loaded: " + *K);
+		ERR_PRINTS("Exited while resource is being loaded: " + K->path);
 	}
 	loading_map.clear();
 	memdelete(loading_map_mutex);

@@ -101,6 +101,10 @@
 #define _EXT_COMPRESSED_RGB_BPTC_SIGNED_FLOAT 0x8E8E
 #define _EXT_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT 0x8E8F
 
+#ifndef GLES_OVER_GL
+#define glClearDepth glClearDepthf
+#endif
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 
@@ -698,14 +702,18 @@ void RasterizerStorageGLES3::texture_allocate(RID p_texture, int p_width, int p_
 
 		int mipmaps = 0;
 
-		while (width != 1 && height != 1) {
-			glTexImage3D(texture->target, 0, internal_format, width, height, depth, 0, format, type, NULL);
+		while (width > 0 || height > 0 || (p_type == VS::TEXTURE_TYPE_3D && depth > 0)) {
+			width = MAX(1, width);
+			height = MAX(1, height);
+			depth = MAX(1, depth);
 
-			width = MAX(1, width / 2);
-			height = MAX(1, height / 2);
+			glTexImage3D(texture->target, mipmaps, internal_format, width, height, depth, 0, format, type, NULL);
+
+			width /= 2;
+			height /= 2;
 
 			if (p_type == VS::TEXTURE_TYPE_3D) {
-				depth = MAX(1, depth / 2);
+				depth /= 2;
 			}
 
 			mipmaps++;
@@ -744,7 +752,11 @@ void RasterizerStorageGLES3::texture_set_data(RID p_texture, const Ref<Image> &p
 	if (config.keep_original_textures && !(texture->flags & VS::TEXTURE_FLAG_USED_FOR_STREAMING)) {
 		texture->images.write[p_layer] = p_image;
 	}
-
+#ifndef GLES_OVER_GL
+	if (p_image->is_compressed() && p_image->has_mipmaps() && !p_image->is_size_po2()) {
+		ERR_PRINTS("Texuture '" + texture->path + "' is compressed, has mipmaps but is not of powerf-of-2 size. This does not work on OpenGL ES 3.0.");
+	}
+#endif
 	Image::Format real_format;
 	Ref<Image> img = _get_gl_image_and_format(p_image, p_image->get_format(), texture->flags, real_format, format, internal_format, type, compressed, srgb);
 
@@ -921,6 +933,9 @@ void RasterizerStorageGLES3::texture_set_data(RID p_texture, const Ref<Image> &p
 		w = MAX(1, w >> 1);
 		h = MAX(1, h >> 1);
 	}
+
+	// Handle array and 3D textures, as those set their data per layer.
+	tsize *= MAX(texture->alloc_depth, 1);
 
 	info.texture_mem -= texture->total_data_size;
 	texture->total_data_size = tsize;
@@ -1492,7 +1507,7 @@ void RasterizerStorageGLES3::texture_debug_usage(List<VS::TextureInfo> *r_info) 
 		tinfo.format = t->format;
 		tinfo.width = t->alloc_width;
 		tinfo.height = t->alloc_height;
-		tinfo.depth = 0;
+		tinfo.depth = t->alloc_depth;
 		tinfo.bytes = t->total_data_size;
 		r_info->push_back(tinfo);
 	}
@@ -1539,7 +1554,7 @@ RID RasterizerStorageGLES3::texture_create_radiance_cubemap(RID p_source, int p_
 	ERR_FAIL_COND_V(!texture, RID());
 	ERR_FAIL_COND_V(texture->type != VS::TEXTURE_TYPE_CUBEMAP, RID());
 
-	bool use_float = config.hdr_supported;
+	bool use_float = config.framebuffer_half_float_supported;
 
 	if (p_resolution < 0) {
 		p_resolution = texture->width;
@@ -1787,7 +1802,7 @@ void RasterizerStorageGLES3::sky_set_texture(RID p_sky, RID p_panorama, int p_ra
 
 		int array_level = 6;
 
-		bool use_float = config.hdr_supported;
+		bool use_float = config.framebuffer_half_float_supported;
 
 		GLenum internal_format = use_float ? GL_RGBA16F : GL_RGB10_A2;
 		GLenum format = GL_RGBA;
@@ -1899,7 +1914,7 @@ void RasterizerStorageGLES3::sky_set_texture(RID p_sky, RID p_panorama, int p_ra
 
 		int mm_level = mipmaps;
 
-		bool use_float = config.hdr_supported;
+		bool use_float = config.framebuffer_half_float_supported;
 
 		GLenum internal_format = use_float ? GL_RGBA16F : GL_RGB10_A2;
 		GLenum format = GL_RGBA;
@@ -3616,7 +3631,7 @@ void RasterizerStorageGLES3::mesh_add_surface(RID p_mesh, uint32_t p_format, VS:
 	}
 
 	mesh->surfaces.push_back(surface);
-	mesh->instance_change_notify(true, false);
+	mesh->instance_change_notify(true, true);
 
 	info.vertex_mem += surface->total_data_size;
 }
@@ -3630,6 +3645,7 @@ void RasterizerStorageGLES3::mesh_set_blend_shape_count(RID p_mesh, int p_amount
 	ERR_FAIL_COND(p_amount < 0);
 
 	mesh->blend_shape_count = p_amount;
+	mesh->instance_change_notify(true, false);
 }
 int RasterizerStorageGLES3::mesh_get_blend_shape_count(RID p_mesh) const {
 
@@ -5130,6 +5146,20 @@ void RasterizerStorageGLES3::skeleton_set_base_transform_2d(RID p_skeleton, cons
 	skeleton->base_transform_2d = p_base_transform;
 }
 
+void RasterizerStorageGLES3::skeleton_set_world_transform(RID p_skeleton, bool p_enable, const Transform &p_world_transform) {
+
+	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
+
+	ERR_FAIL_COND(skeleton->use_2d);
+
+	skeleton->world_transform = p_world_transform;
+	skeleton->use_world_transform = p_enable;
+
+	if (!skeleton->update_list.in_list()) {
+		skeleton_update_list.add(&skeleton->update_list);
+	}
+}
+
 void RasterizerStorageGLES3::update_dirty_skeletons() {
 
 	glActiveTexture(GL_TEXTURE0);
@@ -5434,6 +5464,8 @@ RID RasterizerStorageGLES3::reflection_probe_create() {
 	reflection_probe->intensity = 1.0;
 	reflection_probe->interior_ambient = Color();
 	reflection_probe->interior_ambient_energy = 1.0;
+	reflection_probe->interior_ambient_probe_contrib = 0.0;
+
 	reflection_probe->max_distance = 0;
 	reflection_probe->extents = Vector3(1, 1, 1);
 	reflection_probe->origin_offset = Vector3(0, 0, 0);
@@ -5518,6 +5550,7 @@ void RasterizerStorageGLES3::reflection_probe_set_as_interior(RID p_probe, bool 
 	ERR_FAIL_COND(!reflection_probe);
 
 	reflection_probe->interior = p_enable;
+	reflection_probe->instance_change_notify(true, false);
 }
 void RasterizerStorageGLES3::reflection_probe_set_enable_box_projection(RID p_probe, bool p_enable) {
 
@@ -6045,9 +6078,9 @@ void RasterizerStorageGLES3::particles_set_amount(RID p_particles, int p_amount)
 		glBindBuffer(GL_ARRAY_BUFFER, particles->particle_buffers[i]);
 		glBufferData(GL_ARRAY_BUFFER, floats * sizeof(float), data, GL_STATIC_DRAW);
 
-		for (int i = 0; i < 6; i++) {
-			glEnableVertexAttribArray(i);
-			glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4 * 6, ((uint8_t *)0) + (i * 16));
+		for (int j = 0; j < 6; j++) {
+			glEnableVertexAttribArray(j);
+			glVertexAttribPointer(j, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4 * 6, ((uint8_t *)0) + (j * 16));
 		}
 	}
 
@@ -6800,7 +6833,7 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 	GLuint color_type;
 	Image::Format image_format;
 
-	bool hdr = rt->flags[RENDER_TARGET_HDR] && config.hdr_supported;
+	bool hdr = rt->flags[RENDER_TARGET_HDR] && config.framebuffer_half_float_supported;
 	//hdr = false;
 
 	if (!hdr || rt->flags[RENDER_TARGET_NO_3D]) {
@@ -6836,8 +6869,9 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 
 		glGenTextures(1, &rt->depth);
 		glBindTexture(GL_TEXTURE_2D, rt->depth);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, rt->width, rt->height, 0,
-				GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, rt->width, rt->height, 0,
+				GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -6904,9 +6938,9 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 		glGenRenderbuffers(1, &rt->buffers.depth);
 		glBindRenderbuffer(GL_RENDERBUFFER, rt->buffers.depth);
 		if (msaa == 0)
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, rt->width, rt->height);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, rt->width, rt->height);
 		else
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaa, GL_DEPTH24_STENCIL8, rt->width, rt->height);
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaa, GL_DEPTH_COMPONENT24, rt->width, rt->height);
 
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rt->buffers.depth);
 
@@ -7054,7 +7088,14 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 
 			glGenTextures(1, &rt->exposure.color);
 			glBindTexture(GL_TEXTURE_2D, rt->exposure.color);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 1, 1, 0, GL_RED, GL_FLOAT, NULL);
+			if (config.framebuffer_float_supported) {
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 1, 1, 0, GL_RED, GL_FLOAT, NULL);
+			} else if (config.framebuffer_half_float_supported) {
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, 1, 1, 0, GL_RED, GL_HALF_FLOAT, NULL);
+			} else {
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, 1, 1, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, NULL);
+			}
+
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->exposure.color, 0);
 
 			status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -7139,7 +7180,8 @@ void RasterizerStorageGLES3::_render_target_allocate(RenderTarget *rt) {
 				glViewport(0, 0, rt->effects.mip_maps[i].sizes[j].width, rt->effects.mip_maps[i].sizes[j].height);
 				glClearBufferfv(GL_COLOR, 0, zero);
 				if (used_depth) {
-					glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0, 0);
+					glClearDepth(1.0);
+					glClear(GL_DEPTH_BUFFER_BIT);
 				}
 			}
 
@@ -7809,17 +7851,21 @@ void RasterizerStorageGLES3::initialize() {
 	config.latc_supported = config.extensions.has("GL_EXT_texture_compression_latc");
 	config.bptc_supported = config.extensions.has("GL_ARB_texture_compression_bptc");
 #ifdef GLES_OVER_GL
-	config.hdr_supported = true;
 	config.etc2_supported = false;
 	config.s3tc_supported = true;
 	config.rgtc_supported = true; //RGTC - core since OpenGL version 3.0
 	config.texture_float_linear_supported = true;
+	config.framebuffer_float_supported = true;
+	config.framebuffer_half_float_supported = true;
+
 #else
 	config.etc2_supported = true;
-	config.hdr_supported = false;
 	config.s3tc_supported = config.extensions.has("GL_EXT_texture_compression_dxt1") || config.extensions.has("GL_EXT_texture_compression_s3tc") || config.extensions.has("WEBGL_compressed_texture_s3tc");
 	config.rgtc_supported = config.extensions.has("GL_EXT_texture_compression_rgtc") || config.extensions.has("GL_ARB_texture_compression_rgtc") || config.extensions.has("EXT_texture_compression_rgtc");
 	config.texture_float_linear_supported = config.extensions.has("GL_OES_texture_float_linear");
+	config.framebuffer_float_supported = config.extensions.has("GL_EXT_color_buffer_float");
+	config.framebuffer_half_float_supported = config.extensions.has("GL_EXT_color_buffer_half_float") || config.framebuffer_float_supported;
+
 #endif
 
 	config.pvrtc_supported = config.extensions.has("GL_IMG_texture_compression_pvrtc");
@@ -7912,11 +7958,7 @@ void RasterizerStorageGLES3::initialize() {
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &config.max_texture_image_units);
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &config.max_texture_size);
 
-#ifdef GLES_OVER_GL
-	config.use_rgba_2d_shadows = false;
-#else
-	config.use_rgba_2d_shadows = true;
-#endif
+	config.use_rgba_2d_shadows = config.framebuffer_float_supported;
 
 	//generic quadie for copying
 

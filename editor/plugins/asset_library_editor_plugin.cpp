@@ -177,6 +177,8 @@ void EditorAssetLibraryItemDescription::set_image(int p_type, int p_index, const
 						thumbnail = thumbnail->duplicate();
 						Point2 overlay_pos = Point2((thumbnail->get_width() - overlay->get_width()) / 2, (thumbnail->get_height() - overlay->get_height()) / 2);
 
+						// Overlay and thumbnail need the same format for `blend_rect` to work.
+						thumbnail->convert(Image::FORMAT_RGBA8);
 						thumbnail->lock();
 						thumbnail->blend_rect(overlay, overlay->get_used_rect(), overlay_pos);
 						thumbnail->unlock();
@@ -1338,6 +1340,7 @@ void EditorAssetLibrary::_bind_methods() {
 
 EditorAssetLibrary::EditorAssetLibrary(bool p_templates_only) {
 
+	requesting = REQUESTING_NONE;
 	templates_only = p_templates_only;
 
 	VBoxContainer *library_main = memnew(VBoxContainer);

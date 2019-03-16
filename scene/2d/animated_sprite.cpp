@@ -93,7 +93,7 @@ Rect2 AnimatedSprite::_get_rect() const {
 
 	Point2 ofs = offset;
 	if (centered)
-		ofs -= s / 2;
+		ofs -= Size2(s) / 2;
 
 	if (s == Size2(0, 0))
 		s = Size2(1, 1);
@@ -276,9 +276,9 @@ void SpriteFrames::_set_animations(const Array &p_animations) {
 		anim.speed = d["speed"];
 		anim.loop = d["loop"];
 		Array frames = d["frames"];
-		for (int i = 0; i < frames.size(); i++) {
+		for (int j = 0; j < frames.size(); j++) {
 
-			RES res = frames[i];
+			RES res = frames[j];
 			anim.frames.push_back(res);
 		}
 

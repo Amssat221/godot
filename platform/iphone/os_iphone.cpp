@@ -45,9 +45,10 @@
 #include "core/project_settings.h"
 #include "drivers/unix/syslog_logger.h"
 
-#include "sem_iphone.h"
+#include "semaphore_iphone.h"
 
 #include "ios.h"
+
 #include <dlfcn.h>
 
 int OSIPhone::get_video_driver_count() const {
@@ -119,7 +120,7 @@ Error OSIPhone::initialize(const VideoMode &p_desired, int p_video_driver, int p
 				RasterizerGLES3::make_current();
 				break;
 			} else {
-				if (GLOBAL_GET("rendering/quality/driver/driver_fallback") == "Best") {
+				if (GLOBAL_GET("rendering/quality/driver/fallback_to_gles2")) {
 					p_video_driver = VIDEO_DRIVER_GLES2;
 					use_gl3 = false;
 					continue;
@@ -586,7 +587,7 @@ void OSIPhone::native_video_stop() {
 
 bool OSIPhone::_check_internal_feature_support(const String &p_feature) {
 
-	return p_feature == "mobile" || p_feature == "etc" || p_feature == "pvrtc" || p_feature == "etc2";
+	return p_feature == "mobile";
 }
 
 // Initialization order between compilation units is not guaranteed,

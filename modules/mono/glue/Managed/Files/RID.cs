@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Godot
 {
-    public partial class RID : IDisposable
+    public sealed partial class RID : IDisposable
     {
         private bool disposed = false;
 
@@ -11,7 +11,13 @@ namespace Godot
 
         internal static IntPtr GetPtr(RID instance)
         {
-            return instance == null ? IntPtr.Zero : instance.ptr;
+            if (instance == null)
+                return IntPtr.Zero;
+
+            if (instance.disposed)
+                throw new ObjectDisposedException(instance.GetType().FullName);
+
+            return instance.ptr;
         }
 
         ~RID()
@@ -25,7 +31,7 @@ namespace Godot
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (disposed)
                 return;

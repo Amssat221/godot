@@ -73,7 +73,11 @@ static void _debugger_get_resource_usage(List<ScriptDebuggerRemote::ResourceUsag
 		usage.vram = E->get().bytes;
 		usage.id = E->get().texture;
 		usage.type = "Texture";
-		usage.format = itos(E->get().width) + "x" + itos(E->get().height) + " " + Image::get_format_name(E->get().format);
+		if (E->get().depth == 0) {
+			usage.format = itos(E->get().width) + "x" + itos(E->get().height) + " " + Image::get_format_name(E->get().format);
+		} else {
+			usage.format = itos(E->get().width) + "x" + itos(E->get().height) + "x" + itos(E->get().depth) + " " + Image::get_format_name(E->get().format);
+		}
 		r_usage->push_back(usage);
 	}
 }
@@ -88,7 +92,20 @@ Physics2DServer *_createGodotPhysics2DCallback() {
 	return Physics2DServerWrapMT::init_server<Physics2DServerSW>();
 }
 
+static bool has_server_feature_callback(const String &p_feature) {
+
+	if (VisualServer::get_singleton()) {
+		if (VisualServer::get_singleton()->has_os_feature(p_feature)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void register_server_types() {
+
+	OS::get_singleton()->set_has_server_feature_callback(has_server_feature_callback);
 
 	ClassDB::register_virtual_class<VisualServer>();
 	ClassDB::register_class<AudioServer>();

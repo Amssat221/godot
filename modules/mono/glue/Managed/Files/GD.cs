@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 #if REAL_T_IS_DOUBLE
 using real_t = System.Double;
@@ -50,7 +51,7 @@ namespace Godot
             return godot_icall_GD_hash(var);
         }
 
-        public static Object InstanceFromId(int instanceId)
+        public static Object InstanceFromId(ulong instanceId)
         {
             return godot_icall_GD_instance_from_id(instanceId);
         }
@@ -110,71 +111,62 @@ namespace Godot
             godot_icall_GD_printt(what);
         }
 
-        public static int[] Range(int length)
+        public static double Randf()
         {
-            var ret = new int[length];
-
-            for (int i = 0; i < length; i++)
-            {
-                ret[i] = i;
-            }
-
-            return ret;
+            return godot_icall_GD_randf();
         }
 
-        public static int[] Range(int from, int to)
+        public static uint Randi()
         {
-            if (to < from)
-                return new int[0];
-
-            var ret = new int[to - from];
-
-            for (int i = from; i < to; i++)
-            {
-                ret[i - from] = i;
-            }
-
-            return ret;
+            return godot_icall_GD_randi();
         }
 
-        public static int[] Range(int from, int to, int increment)
+        public static void Randomize()
         {
-            if (to < from && increment > 0)
-                return new int[0];
-            if (to > from && increment < 0)
-                return new int[0];
+            godot_icall_GD_randomize();
+        }
 
-            // Calculate count
-            int count;
+        public static double RandRange(double from, double to)
+        {
+            return godot_icall_GD_rand_range(from, to);
+        }
 
-            if (increment > 0)
-                count = (to - from - 1) / increment + 1;
-            else
-                count = (from - to - 1) / -increment + 1;
+        public static uint RandSeed(ulong seed, out ulong newSeed)
+        {
+            return godot_icall_GD_rand_seed(seed, out newSeed);
+        }
 
-            var ret = new int[count];
+        public static IEnumerable<int> Range(int end)
+        {
+            return Range(0, end, 1);
+        }
 
-            if (increment > 0)
+        public static IEnumerable<int> Range(int start, int end)
+        {
+            return Range(start, end, 1);
+        }
+
+        public static IEnumerable<int> Range(int start, int end, int step)
+        {
+            if (end < start && step > 0)
+                yield break;
+
+            if (end > start && step < 0)
+                yield break;
+
+            if (step > 0)
             {
-                int idx = 0;
-                for (int i = from; i < to; i += increment)
-                {
-                    ret[idx++] = i;
-                }
+                for (int i = start; i < end; i += step)
+                    yield return i;
             }
             else
             {
-                int idx = 0;
-                for (int i = from; i > to; i += increment)
-                {
-                    ret[idx++] = i;
-                }
+                for (int i = start; i > end; i += step)
+                    yield return i;
             }
-
-            return ret;
         }
 
-        public static void Seed(int seed)
+        public static void Seed(ulong seed)
         {
             godot_icall_GD_seed(seed);
         }
@@ -214,7 +206,7 @@ namespace Godot
         internal extern static int godot_icall_GD_hash(object var);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal extern static Object godot_icall_GD_instance_from_id(int instance_id);
+        internal extern static Object godot_icall_GD_instance_from_id(ulong instance_id);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal extern static void godot_icall_GD_print(object[] what);
@@ -232,7 +224,22 @@ namespace Godot
         internal extern static void godot_icall_GD_printt(object[] what);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal extern static void godot_icall_GD_seed(int seed);
+        internal extern static double godot_icall_GD_randf();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static uint godot_icall_GD_randi();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void godot_icall_GD_randomize();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static double godot_icall_GD_rand_range(double from, double to);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static uint godot_icall_GD_rand_seed(ulong seed, out ulong newSeed);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void godot_icall_GD_seed(ulong seed);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal extern static string godot_icall_GD_str(object[] what);

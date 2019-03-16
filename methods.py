@@ -55,7 +55,7 @@ def update_version(module_version_string=""):
     f.write("#define VERSION_STATUS \"" + str(version.status) + "\"\n")
     f.write("#define VERSION_BUILD \"" + str(build_name) + "\"\n")
     f.write("#define VERSION_MODULE_CONFIG \"" + str(version.module_config) + module_version_string + "\"\n")
-    f.write("#define VERSION_YEAR " + str(2018) + "\n")
+    f.write("#define VERSION_YEAR " + str(version.year) + "\n")
     f.close()
 
     # NOTE: It is safe to generate this file here, since this is still executed serially
@@ -660,3 +660,13 @@ def detect_darwin_sdk_path(platform, env):
             print("Failed to find SDK path while running xcrun --sdk {} --show-sdk-path.".format(sdk_name))
             raise
 
+def get_compiler_version(env):
+    version = decode_utf8(subprocess.check_output([env['CXX'], '--version']).strip())
+    match = re.search('[0-9][0-9.]*', version)
+    if match is not None:
+        return match.group().split('.')
+    else:
+        return None
+
+def use_gcc(env):
+    return 'gcc' in os.path.basename(env["CC"])

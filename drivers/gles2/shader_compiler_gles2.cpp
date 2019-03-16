@@ -81,7 +81,7 @@ static String _opstr(SL::Operator p_op) {
 static String _mkid(const String &p_id) {
 
 	String id = "m_" + p_id;
-	return id.replace("__", "_dus_"); //doubleunderscore is reserverd in glsl
+	return id.replace("__", "_dus_"); //doubleunderscore is reserved in glsl
 }
 
 static String f2sp0(float p_float) {
@@ -318,7 +318,7 @@ String ShaderCompilerGLES2::_dump_node_code(SL::Node *p_node, int p_level, Gener
 
 				uniform_code += "uniform ";
 
-				uniform_code += _prestr(E->get().precission);
+				uniform_code += _prestr(E->get().precision);
 				uniform_code += _typestr(E->get().type);
 				uniform_code += " ";
 				uniform_code += _mkid(E->key());
@@ -344,7 +344,7 @@ String ShaderCompilerGLES2::_dump_node_code(SL::Node *p_node, int p_level, Gener
 				StringBuffer<> varying_code;
 
 				varying_code += "varying ";
-				varying_code += _prestr(E->get().precission);
+				varying_code += _prestr(E->get().precision);
 				varying_code += _typestr(E->get().type);
 				varying_code += " ";
 				varying_code += _mkid(E->key());
@@ -770,7 +770,7 @@ ShaderCompilerGLES2::ShaderCompilerGLES2() {
 	/** CANVAS ITEM SHADER **/
 
 	actions[VS::SHADER_CANVAS_ITEM].renames["VERTEX"] = "outvec.xy";
-	actions[VS::SHADER_CANVAS_ITEM].renames["UV"] = "uv_interp";
+	actions[VS::SHADER_CANVAS_ITEM].renames["UV"] = "uv";
 	actions[VS::SHADER_CANVAS_ITEM].renames["POINT_SIZE"] = "gl_PointSize";
 
 	actions[VS::SHADER_CANVAS_ITEM].renames["WORLD_MATRIX"] = "modelview_matrix";
@@ -859,7 +859,7 @@ ShaderCompilerGLES2::ShaderCompilerGLES2() {
 	actions[VS::SHADER_SPATIAL].renames["INSTANCE_CUSTOM"] = "instance_custom";
 	actions[VS::SHADER_SPATIAL].renames["SCREEN_UV"] = "screen_uv";
 	actions[VS::SHADER_SPATIAL].renames["SCREEN_TEXTURE"] = "screen_texture";
-	actions[VS::SHADER_SPATIAL].renames["DEPTH_TEXTURE"] = "depth_buffer";
+	actions[VS::SHADER_SPATIAL].renames["DEPTH_TEXTURE"] = "depth_texture";
 	// Defined in GLES3, but not available in GLES2
 	//actions[VS::SHADER_SPATIAL].renames["DEPTH"] = "gl_FragDepth";
 	actions[VS::SHADER_SPATIAL].renames["ALPHA_SCISSOR"] = "alpha_scissor";
@@ -895,6 +895,7 @@ ShaderCompilerGLES2::ShaderCompilerGLES2() {
 	actions[VS::SHADER_SPATIAL].usage_defines["SSS_STRENGTH"] = "#define ENABLE_SSS\n";
 	actions[VS::SHADER_SPATIAL].usage_defines["TRANSMISSION"] = "#define TRANSMISSION_USED\n";
 	actions[VS::SHADER_SPATIAL].usage_defines["SCREEN_TEXTURE"] = "#define SCREEN_TEXTURE_USED\n";
+	actions[VS::SHADER_SPATIAL].usage_defines["DEPTH_TEXTURE"] = "#define DEPTH_TEXTURE_USED\n";
 	actions[VS::SHADER_SPATIAL].usage_defines["SCREEN_UV"] = "#define SCREEN_UV_USED\n";
 
 	actions[VS::SHADER_SPATIAL].usage_defines["DIFFUSE_LIGHT"] = "#define USE_LIGHT_SHADER_CODE\n";

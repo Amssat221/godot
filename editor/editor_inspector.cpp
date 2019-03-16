@@ -82,7 +82,10 @@ Size2 EditorProperty::get_minimum_size() const {
 
 void EditorProperty::emit_changed(const StringName &p_property, const Variant &p_value, const StringName &p_field, bool p_changing) {
 
-	emit_signal("property_changed", p_property, p_value, p_field, p_changing);
+	Variant args[4] = { p_property, p_value, p_field, p_changing };
+	const Variant *argptrs[4] = { &args[0], &args[1], &args[2], &args[3] };
+
+	emit_signal("property_changed", (const Variant **)argptrs, 4);
 }
 
 void EditorProperty::_notification(int p_what) {
@@ -215,14 +218,14 @@ void EditorProperty::_notification(int p_what) {
 			else
 				checkbox = get_icon("unchecked", "CheckBox");
 
-			Color color(1, 1, 1);
+			Color color2(1, 1, 1);
 			if (check_hover) {
-				color.r *= 1.2;
-				color.g *= 1.2;
-				color.b *= 1.2;
+				color2.r *= 1.2;
+				color2.g *= 1.2;
+				color2.b *= 1.2;
 			}
 			check_rect = Rect2(ofs, ((size.height - checkbox->get_height()) / 2), checkbox->get_width(), checkbox->get_height());
-			draw_texture(checkbox, check_rect.position, color);
+			draw_texture(checkbox, check_rect.position, color2);
 			ofs += get_constant("hseparator", "Tree");
 			ofs += checkbox->get_width();
 		} else {
@@ -236,14 +239,14 @@ void EditorProperty::_notification(int p_what) {
 			text_limit -= reload_icon->get_width() + get_constant("hseparator", "Tree") * 2;
 			revert_rect = Rect2(text_limit + get_constant("hseparator", "Tree"), (size.height - reload_icon->get_height()) / 2, reload_icon->get_width(), reload_icon->get_height());
 
-			Color color(1, 1, 1);
+			Color color2(1, 1, 1);
 			if (revert_hover) {
-				color.r *= 1.2;
-				color.g *= 1.2;
-				color.b *= 1.2;
+				color2.r *= 1.2;
+				color2.g *= 1.2;
+				color2.b *= 1.2;
 			}
 
-			draw_texture(reload_icon, revert_rect.position, color);
+			draw_texture(reload_icon, revert_rect.position, color2);
 		} else {
 			revert_rect = Rect2();
 		}
@@ -262,14 +265,14 @@ void EditorProperty::_notification(int p_what) {
 
 			ofs = size.width - key->get_width() - get_constant("hseparator", "Tree");
 
-			Color color(1, 1, 1);
+			Color color2(1, 1, 1);
 			if (keying_hover) {
-				color.r *= 1.2;
-				color.g *= 1.2;
-				color.b *= 1.2;
+				color2.r *= 1.2;
+				color2.g *= 1.2;
+				color2.b *= 1.2;
 			}
 			keying_rect = Rect2(ofs, ((size.height - key->get_height()) / 2), key->get_width(), key->get_height());
-			draw_texture(key, keying_rect.position, color);
+			draw_texture(key, keying_rect.position, color2);
 		} else {
 			keying_rect = Rect2();
 		}
@@ -1233,6 +1236,7 @@ EditorInspectorSection::EditorInspectorSection() {
 }
 
 EditorInspectorSection::~EditorInspectorSection() {
+
 	if (!vbox_added) {
 		memdelete(vbox);
 	}
@@ -1294,6 +1298,10 @@ void EditorInspector::remove_inspector_plugin(const Ref<EditorInspectorPlugin> &
 	for (int i = idx; i < inspector_plugin_count - 1; i++) {
 		inspector_plugins[i] = inspector_plugins[i + 1];
 	}
+
+	if (idx == inspector_plugin_count - 1)
+		inspector_plugins[idx] = Ref<EditorInspectorPlugin>();
+
 	inspector_plugin_count--;
 }
 
@@ -1482,19 +1490,19 @@ void EditorInspector::update_tree() {
 
 			category->bg_color = get_color("prop_category", "Editor");
 			if (use_doc_hints) {
-				StringName type = p.name;
-				if (!class_descr_cache.has(type)) {
+				StringName type2 = p.name;
+				if (!class_descr_cache.has(type2)) {
 
 					String descr;
 					DocData *dd = EditorHelp::get_doc_data();
-					Map<String, DocData::ClassDoc>::Element *E = dd->class_list.find(type);
+					Map<String, DocData::ClassDoc>::Element *E = dd->class_list.find(type2);
 					if (E) {
 						descr = E->get().brief_description;
 					}
-					class_descr_cache[type] = descr.word_wrap(80);
+					class_descr_cache[type2] = descr.word_wrap(80);
 				}
 
-				category->set_tooltip(p.name + "::" + (class_descr_cache[type] == "" ? "" : class_descr_cache[type]));
+				category->set_tooltip(p.name + "::" + (class_descr_cache[type2] == "" ? "" : class_descr_cache[type2]));
 			}
 
 			for (List<Ref<EditorInspectorPlugin> >::Element *E = valid_plugins.front(); E; E = E->next()) {
@@ -1639,16 +1647,16 @@ void EditorInspector::update_tree() {
 
 			if (!found) {
 				DocData *dd = EditorHelp::get_doc_data();
-				Map<String, DocData::ClassDoc>::Element *E = dd->class_list.find(classname);
-				while (E && descr == String()) {
-					for (int i = 0; i < E->get().properties.size(); i++) {
-						if (E->get().properties[i].name == propname.operator String()) {
-							descr = E->get().properties[i].description.strip_edges().word_wrap(80);
+				Map<String, DocData::ClassDoc>::Element *F = dd->class_list.find(classname);
+				while (F && descr == String()) {
+					for (int i = 0; i < F->get().properties.size(); i++) {
+						if (F->get().properties[i].name == propname.operator String()) {
+							descr = F->get().properties[i].description.strip_edges().word_wrap(80);
 							break;
 						}
 					}
-					if (!E->get().inherits.empty()) {
-						E = dd->class_list.find(E->get().inherits);
+					if (!F->get().inherits.empty()) {
+						F = dd->class_list.find(F->get().inherits);
 					} else {
 						break;
 					}
@@ -1937,7 +1945,7 @@ void EditorInspector::_edit_set(const String &p_name, const Variant &p_value, bo
 		}
 	}
 
-	if (!undo_redo || Object::cast_to<ArrayPropertyEdit>(object) || Object::cast_to<DictionaryPropertyEdit>(object)) { //kind of hacky
+	if (!undo_redo || bool(object->call("_dont_undo_redo"))) {
 
 		object->set(p_name, p_value);
 		if (p_refresh_all)
@@ -2132,6 +2140,9 @@ void EditorInspector::_notification(int p_what) {
 			add_style_override("bg", get_stylebox("bg", "Tree"));
 			get_tree()->connect("node_removed", this, "_node_removed");
 		}
+	}
+	if (p_what == NOTIFICATION_PREDELETE) {
+		edit(NULL); //just in case
 	}
 	if (p_what == NOTIFICATION_EXIT_TREE) {
 

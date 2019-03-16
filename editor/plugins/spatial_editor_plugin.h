@@ -60,6 +60,7 @@ public:
 
 		RID instance;
 		Ref<ArrayMesh> mesh;
+		Ref<Material> material;
 		RID skeleton;
 		bool billboard;
 		bool unscaled;
@@ -103,7 +104,7 @@ protected:
 
 public:
 	void add_lines(const Vector<Vector3> &p_lines, const Ref<Material> &p_material, bool p_billboard = false);
-	void add_mesh(const Ref<ArrayMesh> &p_mesh, bool p_billboard = false, const RID &p_skeleton = RID());
+	void add_mesh(const Ref<ArrayMesh> &p_mesh, bool p_billboard = false, const RID &p_skeleton = RID(), const Ref<Material> &p_material = Ref<Material>());
 	void add_collision_segments(const Vector<Vector3> &p_lines);
 	void add_collision_triangles(const Ref<TriangleMesh> &p_tmesh);
 	void add_unscaled_billboard(const Ref<Material> &p_material, float p_scale = 1);
@@ -618,6 +619,7 @@ private:
 	void _instance_scene();
 	void _init_indicators();
 	void _update_gizmos_menu();
+	void _update_gizmos_menu_theme();
 	void _init_grid();
 	void _finish_indicators();
 	void _finish_grid();
@@ -637,7 +639,8 @@ private:
 	static SpatialEditor *singleton;
 
 	void _node_removed(Node *p_node);
-	Vector<Ref<EditorSpatialGizmoPlugin> > gizmo_plugins;
+	Vector<Ref<EditorSpatialGizmoPlugin> > gizmo_plugins_by_priority;
+	Vector<Ref<EditorSpatialGizmoPlugin> > gizmo_plugins_by_name;
 
 	void _register_all_gizmos();
 
@@ -780,6 +783,7 @@ public:
 	Ref<SpatialMaterial> get_material(const String &p_name, const Ref<EditorSpatialGizmo> &p_gizmo = Ref<EditorSpatialGizmo>());
 
 	virtual String get_name() const;
+	virtual int get_priority() const;
 	virtual bool can_be_hidden() const;
 	virtual bool is_selectable_when_hidden() const;
 
@@ -792,6 +796,7 @@ public:
 
 	Ref<EditorSpatialGizmo> get_gizmo(Spatial *p_spatial);
 	void set_state(int p_state);
+	int get_state() const;
 	void unregister_gizmo(EditorSpatialGizmo *p_gizmo);
 
 	EditorSpatialGizmoPlugin();

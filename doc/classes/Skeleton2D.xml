@@ -5,6 +5,7 @@
 	<description>
 	</description>
 	<tutorials>
+		<link>http://docs.godotengine.org/en/latest/tutorials/animation/2d_skeletons.html</link>
 	</tutorials>
 	<demos>
 	</demos>
@@ -30,6 +31,12 @@
 			</description>
 		</method>
 	</methods>
+	<signals>
+		<signal name="bone_setup_changed">
+			<description>
+			</description>
+		</signal>
+	</signals>
 	<constants>
 	</constants>
 </class>

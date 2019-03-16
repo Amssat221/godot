@@ -658,6 +658,8 @@ void SpaceBullet::check_ghost_overlaps() {
 	for (x = areas.size() - 1; 0 <= x; --x) {
 		area = areas[x];
 
+		btVector3 area_scale(area->get_bt_body_scale());
+
 		if (!area->is_monitoring())
 			continue;
 
@@ -681,9 +683,10 @@ void SpaceBullet::check_ghost_overlaps() {
 			bool hasOverlap = false;
 			btCollisionObject *overlapped_bt_co = ghostOverlaps[i];
 			RigidCollisionObjectBullet *otherObject = static_cast<RigidCollisionObjectBullet *>(overlapped_bt_co->getUserPointer());
+			btVector3 other_body_scale(otherObject->get_bt_body_scale());
 
 			if (!area->is_transform_changed() && !otherObject->is_transform_changed()) {
-				hasOverlap = true;
+				hasOverlap = -1 != area->find_overlapping_object(otherObject);
 				goto collision_found;
 			}
 
@@ -698,19 +701,38 @@ void SpaceBullet::check_ghost_overlaps() {
 				if (!area->get_bt_shape(y)->isConvex())
 					continue;
 
-				gjk_input.m_transformA = area->get_transform__bullet() * area->get_bt_shape_transform(y);
+				btTransform area_shape_treansform(area->get_bt_shape_transform(y));
+				area_shape_treansform.getOrigin() *= area_scale;
+
+				gjk_input.m_transformA =
+						area->get_transform__bullet() *
+						area_shape_treansform;
+
 				area_shape = static_cast<btConvexShape *>(area->get_bt_shape(y));
 
 				// For each other object shape
 				for (z = otherObject->get_shape_count() - 1; 0 <= z; --z) {
 
 					other_body_shape = static_cast<btCollisionShape *>(otherObject->get_bt_shape(z));
-					gjk_input.m_transformB = otherObject->get_transform__bullet() * otherObject->get_bt_shape_transform(z);
+
+					if (other_body_shape->isConcave())
+						continue;
+
+					btTransform other_shape_transform(otherObject->get_bt_shape_transform(z));
+					other_shape_transform.getOrigin() *= other_body_scale;
+
+					gjk_input.m_transformB =
+							otherObject->get_transform__bullet() *
+							other_shape_transform;
 
 					if (other_body_shape->isConvex()) {
 
 						btPointCollector result;
-						btGjkPairDetector gjk_pair_detector(area_shape, static_cast<btConvexShape *>(other_body_shape), gjk_simplex_solver, gjk_epa_pen_solver);
+						btGjkPairDetector gjk_pair_detector(
+								area_shape,
+								static_cast<btConvexShape *>(other_body_shape),
+								gjk_simplex_solver,
+								gjk_epa_pen_solver);
 						gjk_pair_detector.getClosestPoints(gjk_input, result, 0);
 
 						if (0 >= result.m_distance) {
@@ -1224,6 +1246,21 @@ bool SpaceBullet::RFP_convex_world_test(const btConvexShape *p_shapeA, const btC
 	return false;
 }
 
+void SpaceBullet::convert_to_separation_result(PhysicsServer::SeparationResult *r_result, const SpaceBullet::RecoverResult &p_recover_result, int p_shape_id, const btCollisionObject *p_other_object) const {
+
+	const btRigidBody *btRigid = static_cast<const btRigidBody *>(p_other_object);
+	CollisionObjectBullet *collisionObject = static_cast<CollisionObjectBullet *>(p_other_object->getUserPointer());
+
+	r_result->collision_depth = p_recover_result.penetration_distance;
+	B_TO_G(p_recover_result.pointWorld, r_result->collision_point);
+	B_TO_G(p_recover_result.normal, r_result->collision_normal);
+	B_TO_G(btRigid->getVelocityInLocalPoint(p_recover_result.pointWorld - btRigid->getWorldTransform().getOrigin()), r_result->collider_velocity);
+	r_result->collision_local_shape = p_shape_id;
+	r_result->collider_id = collisionObject->get_instance_id();
+	r_result->collider = collisionObject->get_self();
+	r_result->collider_shape = p_recover_result.other_compound_shape_index;
+}
+
 int SpaceBullet::recover_from_penetration_ray(RigidBodyBullet *p_body, const btTransform &p_body_position, btScalar p_recover_movement_scale, bool p_infinite_inertia, int p_result_max, btVector3 &r_delta_recover_movement, PhysicsServer::SeparationResult *r_results) {
 
 	RecoverPenetrationBroadPhaseCallback recover_broad_result(p_body->get_bt_collision_object(), p_body->get_collision_layer(), p_body->get_collision_mask());
@@ -1275,21 +1312,18 @@ int SpaceBullet::recover_from_penetration_ray(RigidBodyBullet *p_body, const btT
 				btCompoundShape *cs = static_cast<btCompoundShape *>(otherObject->getCollisionShape());
 				for (int x = cs->getNumChildShapes() - 1; 0 <= x; --x) {
 
-					RecoverResult r_recover_result;
-					if (RFP_convex_world_test(kin_shape.shape, cs->getChildShape(x), p_body->get_bt_collision_object(), otherObject, kinIndex, x, body_shape_position, otherObject->getWorldTransform() * cs->getChildTransform(x), p_recover_movement_scale, r_delta_recover_movement, &r_recover_result)) {
+					RecoverResult recover_result;
+					if (RFP_convex_world_test(kin_shape.shape, cs->getChildShape(x), p_body->get_bt_collision_object(), otherObject, kinIndex, x, body_shape_position, otherObject->getWorldTransform() * cs->getChildTransform(x), p_recover_movement_scale, r_delta_recover_movement, &recover_result)) {
 
-						const btRigidBody *btRigid = static_cast<const btRigidBody *>(otherObject);
-						CollisionObjectBullet *collisionObject = static_cast<CollisionObjectBullet *>(otherObject->getUserPointer());
-
-						r_results[ray_index].collision_depth = r_recover_result.penetration_distance;
-						B_TO_G(r_recover_result.pointWorld, r_results[ray_index].collision_point);
-						B_TO_G(r_recover_result.normal, r_results[ray_index].collision_normal);
-						B_TO_G(btRigid->getVelocityInLocalPoint(r_recover_result.pointWorld - btRigid->getWorldTransform().getOrigin()), r_results[ray_index].collider_velocity);
-						r_results[ray_index].collision_local_shape = kinIndex;
-						r_results[ray_index].collider_id = collisionObject->get_instance_id();
-						r_results[ray_index].collider = collisionObject->get_self();
-						r_results[ray_index].collider_shape = r_recover_result.other_compound_shape_index;
+						convert_to_separation_result(&r_results[ray_index], recover_result, kinIndex, otherObject);
 					}
+				}
+			} else {
+
+				RecoverResult recover_result;
+				if (RFP_convex_world_test(kin_shape.shape, otherObject->getCollisionShape(), p_body->get_bt_collision_object(), otherObject, kinIndex, 0, body_shape_position, otherObject->getWorldTransform(), p_recover_movement_scale, r_delta_recover_movement, &recover_result)) {
+
+					convert_to_separation_result(&r_results[ray_index], recover_result, kinIndex, otherObject);
 				}
 			}
 		}

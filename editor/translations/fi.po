@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-02-09 18:11+0000\n"
+"PO-Revision-Date: 2019-03-12 15:25+0000\n"
 "Last-Translator: Tapani Niemi <tapani.niemi@kapsi.fi>\n"
 "Language-Team: Finnish <https://hosted.weblate.org/projects/godot-engine/"
 "godot/fi/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.5-dev\n"
+"X-Generator: Weblate 3.5.1\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -89,6 +89,14 @@ msgstr "Kahdenna valitut avaimet"
 msgid "Delete Selected Key(s)"
 msgstr "Poista valitut avaimet"
 
+#: editor/animation_bezier_editor.cpp
+msgid "Add Bezier Point"
+msgstr "Lisää Bezier-piste"
+
+#: editor/animation_bezier_editor.cpp
+msgid "Move Bezier Points"
+msgstr "Siirrä Bezier-pisteitä"
+
 #: editor/animation_bezier_editor.cpp editor/animation_track_editor.cpp
 msgid "Anim Duplicate Keys"
 msgstr "Animaatio: Monista avaimet"
@@ -116,6 +124,15 @@ msgstr "Animaatio: muuta avainruudun arvoa"
 #: editor/animation_track_editor.cpp
 msgid "Anim Change Call"
 msgstr "Animaatio: muuta kutsua"
+
+#: editor/animation_track_editor.cpp
+msgid "Change Animation Length"
+msgstr "Muuta animaation pituutta"
+
+#: editor/animation_track_editor.cpp
+#: editor/plugins/sprite_frames_editor_plugin.cpp
+msgid "Change Animation Loop"
+msgstr "Vaihda animaation luuppia"
 
 #: editor/animation_track_editor.cpp
 msgid "Property Track"
@@ -167,8 +184,12 @@ msgid "Anim Clips:"
 msgstr "Animaatioleikkeet:"
 
 #: editor/animation_track_editor.cpp
+msgid "Change Track Path"
+msgstr "Muuta raidan polkua"
+
+#: editor/animation_track_editor.cpp
 msgid "Toggle this track on/off."
-msgstr "Käytä tämä raita päälle/pois."
+msgstr "Kytke tämä raita päälle/pois."
 
 #: editor/animation_track_editor.cpp
 msgid "Update Mode (How this property is set)"
@@ -189,6 +210,10 @@ msgstr "Poista tämä raita."
 #: editor/animation_track_editor.cpp
 msgid "Time (s): "
 msgstr "Aika (s): "
+
+#: editor/animation_track_editor.cpp
+msgid "Toggle Track Enabled"
+msgstr "Aseta raita päälle"
 
 #: editor/animation_track_editor.cpp
 msgid "Continuous"
@@ -241,6 +266,18 @@ msgid "Delete Key(s)"
 msgstr "Poista avainruudut"
 
 #: editor/animation_track_editor.cpp
+msgid "Change Animation Update Mode"
+msgstr "Vaihda animaation päivitystilaa"
+
+#: editor/animation_track_editor.cpp
+msgid "Change Animation Interpolation Mode"
+msgstr "Vaihda animaation interpolaatiotilaa"
+
+#: editor/animation_track_editor.cpp
+msgid "Change Animation Loop Mode"
+msgstr "Vaihda animaation toistotilaa"
+
+#: editor/animation_track_editor.cpp
 msgid "Remove Anim Track"
 msgstr "Poista animaatioraita"
 
@@ -282,6 +319,14 @@ msgid "Anim Insert Key"
 msgstr "Animaatio: Lisää avain"
 
 #: editor/animation_track_editor.cpp
+msgid "Change Animation Step"
+msgstr "Vaihda animaation askelta"
+
+#: editor/animation_track_editor.cpp
+msgid "Rearrange Tracks"
+msgstr "Järjestele uudelleen raidat"
+
+#: editor/animation_track_editor.cpp
 msgid "Transform tracks only apply to Spatial-based nodes."
 msgstr "Raitojen muunnos toimii vain Spatial-pohjaisille solmuille."
 
@@ -310,6 +355,10 @@ msgid "Not possible to add a new track without a root"
 msgstr "Uutta raitaa ei voida lisätä ilman juurta"
 
 #: editor/animation_track_editor.cpp
+msgid "Add Bezier Track"
+msgstr "Lisää Bezier-raita"
+
+#: editor/animation_track_editor.cpp
 msgid "Track path is invalid, so can't add a key."
 msgstr "Raidan polku on virheellinen, joten ei voida lisätä avainruutua."
 
@@ -318,8 +367,20 @@ msgid "Track is not of type Spatial, can't insert key"
 msgstr "Raita ei ole Spatial-tyyppinen, joten ei voida lisätä avainruutua"
 
 #: editor/animation_track_editor.cpp
+msgid "Add Transform Track Key"
+msgstr "Lisää muunnosraidan avainruutu"
+
+#: editor/animation_track_editor.cpp
+msgid "Add Track Key"
+msgstr "Lisää raidan avainruutu"
+
+#: editor/animation_track_editor.cpp
 msgid "Track path is invalid, so can't add a method key."
 msgstr "Raidan polku on virheellinen, joten ei voida lisätä metodin avainta."
+
+#: editor/animation_track_editor.cpp
+msgid "Add Method Track Key"
+msgstr "Lisää metodikutsuraidan avainruutu"
 
 #: editor/animation_track_editor.cpp
 msgid "Method not found in object: "
@@ -332,6 +393,10 @@ msgstr "Animaatio: siirrä avaimia"
 #: editor/animation_track_editor.cpp
 msgid "Clipboard is empty"
 msgstr "Leikepöytä on tyhjä"
+
+#: editor/animation_track_editor.cpp
+msgid "Paste Tracks"
+msgstr "Liitä raidat"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Scale Keys"
@@ -374,10 +439,6 @@ msgstr "Animaation ominaisuudet."
 #: editor/animation_track_editor.cpp
 msgid "Copy Tracks"
 msgstr "Kopioi raidat"
-
-#: editor/animation_track_editor.cpp
-msgid "Paste Tracks"
-msgstr "Liitä raidat"
 
 #: editor/animation_track_editor.cpp
 msgid "Scale Selection"
@@ -479,6 +540,18 @@ msgstr "Valitse kopioitavat raidat:"
 msgid "Copy"
 msgstr "Kopioi"
 
+#: editor/animation_track_editor_plugins.cpp
+msgid "Add Audio Track Clip"
+msgstr "Lisää ääniraidan leike"
+
+#: editor/animation_track_editor_plugins.cpp
+msgid "Change Audio Track Clip Start Offset"
+msgstr "Muuta ääniraidan leikkeen alkusiirrosta"
+
+#: editor/animation_track_editor_plugins.cpp
+msgid "Change Audio Track Clip End Offset"
+msgstr "Muuta ääniraidan leikkeen loppusiirrosta"
+
 #: editor/array_property_edit.cpp
 msgid "Resize Array"
 msgstr "Muuta taulukon kokoa"
@@ -548,8 +621,8 @@ msgid "Warnings"
 msgstr "Varoitukset"
 
 #: editor/code_editor.cpp
-msgid "Line and column numbers"
-msgstr ""
+msgid "Line and column numbers."
+msgstr "Rivi- ja sarakenumerot."
 
 #: editor/connections_dialog.cpp
 msgid "Method in target Node must be specified!"
@@ -1108,8 +1181,8 @@ msgid "Add Bus"
 msgstr "Lisää väylä"
 
 #: editor/editor_audio_buses.cpp
-msgid "Create a new Bus Layout."
-msgstr "Luo uusi ääniväylän asettelu."
+msgid "Add a new Audio Bus to this layout."
+msgstr "Lisää tähän asetteluun uusi ääniväylä."
 
 #: editor/editor_audio_buses.cpp editor/editor_properties.cpp
 #: editor/plugins/animation_player_editor_plugin.cpp editor/property_editor.cpp
@@ -1136,6 +1209,10 @@ msgstr "Lataa oletus"
 #: editor/editor_audio_buses.cpp
 msgid "Load the default Bus Layout."
 msgstr "Lataa väylän oletusasettelu."
+
+#: editor/editor_audio_buses.cpp
+msgid "Create a new Bus Layout."
+msgstr "Luo uusi ääniväylän asettelu."
 
 #: editor/editor_autoload_settings.cpp
 msgid "Invalid name."
@@ -1286,6 +1363,33 @@ msgstr "Vientimallia ei löytynyt odotetusta polusta:"
 msgid "Packing"
 msgstr "Pakataan"
 
+#: editor/editor_export.cpp
+msgid ""
+"Target platform requires 'ETC' texture compression for GLES2. Enable 'Import "
+"Etc' in Project Settings."
+msgstr ""
+"GLES2 tarvitsee kohdealustalla 'ETC' tekstuuripakkausta. Kytke 'Import Etc' "
+"päälle projektin asetuksista."
+
+#: editor/editor_export.cpp
+msgid ""
+"Target platform requires 'ETC2' texture compression for GLES3. Enable "
+"'Import Etc 2' in Project Settings."
+msgstr ""
+"GLES3 tarvitsee kohdealustalla 'ETC' tekstuuripakkausta. Kytke 'Import Etc "
+"2' päälle projektin asetuksista."
+
+#: editor/editor_export.cpp
+msgid ""
+"Target platform requires 'ETC' texture compression for the driver fallback "
+"to GLES2.\n"
+"Enable 'Import Etc' in Project Settings, or disable 'Driver Fallback "
+"Enabled'."
+msgstr ""
+"GLES2 vara-ajuri tarvitsee kohdealustalla 'ETC' tekstuuripakkausta. Kytke "
+"'Import Etc' päälle projektin asetuksista tai poista 'Driver Fallback "
+"Enabled' asetus."
+
 #: editor/editor_export.cpp platform/android/export/export.cpp
 #: platform/iphone/export/export.cpp platform/javascript/export/export.cpp
 #: platform/osx/export/export.cpp platform/uwp/export/export.cpp
@@ -1331,7 +1435,7 @@ msgstr "Näytä tiedostonhallinnassa"
 msgid "New Folder..."
 msgstr "Uusi kansio..."
 
-#: editor/editor_file_dialog.cpp
+#: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "Refresh"
 msgstr "Päivitä"
 
@@ -1406,9 +1510,29 @@ msgstr "Siirrä suosikkia ylös"
 msgid "Move Favorite Down"
 msgstr "Siirrä suosikkia alas"
 
-#: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
+#: editor/editor_file_dialog.cpp
+msgid "Previous Folder"
+msgstr "Edellinen kansio"
+
+#: editor/editor_file_dialog.cpp
+msgid "Next Folder"
+msgstr "Seuraava kansio"
+
+#: editor/editor_file_dialog.cpp
 msgid "Go to parent folder"
 msgstr "Siirry yläkansioon"
+
+#: editor/editor_file_dialog.cpp
+msgid "(Un)favorite current folder."
+msgstr "Kansio suosikkeihin."
+
+#: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
+msgid "View items as a grid of thumbnails."
+msgstr "Ruudukkonäkymä esikatselukuvilla."
+
+#: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
+msgid "View items as a list."
+msgstr "Listanäkymä."
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "Directories & Files:"
@@ -1632,14 +1756,26 @@ msgstr "Tyhjennä tuloste"
 msgid "Project export failed with error code %d."
 msgstr "Projektin vienti epäonnistui virhekoodilla %d."
 
-#: editor/editor_node.cpp editor/plugins/animation_player_editor_plugin.cpp
-msgid "Error saving resource!"
-msgstr "Virhe tallennettaessa resurssia!"
+#: editor/editor_node.cpp
+msgid "Imported resources can't be saved."
+msgstr "Tuotuja resursseja ei voida tallentaa."
 
 #: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
 #: scene/gui/dialogs.cpp
 msgid "OK"
 msgstr "OK"
+
+#: editor/editor_node.cpp editor/plugins/animation_player_editor_plugin.cpp
+msgid "Error saving resource!"
+msgstr "Virhe tallennettaessa resurssia!"
+
+#: editor/editor_node.cpp
+msgid ""
+"This resource can't be saved because it does not belong to the edited scene. "
+"Make it unique first."
+msgstr ""
+"Resurssia ei voida tallentaa, koska se ei kuulu muokattavana olevaan "
+"skeneen. Tee siitä ensin yksilöllinen."
 
 #: editor/editor_node.cpp editor/plugins/animation_player_editor_plugin.cpp
 msgid "Save Resource As..."
@@ -1857,6 +1993,14 @@ msgstr "Tallenna ja sulje"
 #: editor/editor_node.cpp
 msgid "Save changes to '%s' before closing?"
 msgstr "Tallennetaanko muutokset tiedostoon '%s' ennen sulkemista?"
+
+#: editor/editor_node.cpp
+msgid "Saved %s modified resource(s)."
+msgstr "Tallennettiin %s muokattua resurssia."
+
+#: editor/editor_node.cpp
+msgid "A root node is required to save the scene."
+msgstr "Skenen tallentaminen edellyttää, että sillä on juurisolmu."
 
 #: editor/editor_node.cpp
 msgid "Save Scene As..."
@@ -2375,8 +2519,8 @@ msgid "Save & Restart"
 msgstr "Tallenna & käynnistä uudelleen"
 
 #: editor/editor_node.cpp
-msgid "Spins when the editor window repaints!"
-msgstr "Pyörii kun editorin ikkuna päivittyy!"
+msgid "Spins when the editor window redraws."
+msgstr "Pyörii kun editorin ikkuna päivittyy."
 
 #: editor/editor_node.cpp
 msgid "Update Always"
@@ -2942,14 +3086,6 @@ msgstr ""
 "tiedostojärjestelmästäsi!"
 
 #: editor/filesystem_dock.cpp
-msgid "View items as a grid of thumbnails."
-msgstr "Ruudukkonäkymä esikatselukuvilla."
-
-#: editor/filesystem_dock.cpp
-msgid "View items as a list."
-msgstr "Listanäkymä."
-
-#: editor/filesystem_dock.cpp
 msgid "Status: Import of file failed. Please fix file and reimport manually."
 msgstr ""
 "Tila: Tuonti epäonnistui. Ole hyvä, korjaa tiedosto ja tuo se uudelleen."
@@ -3084,10 +3220,6 @@ msgstr "Aseta jaettu tila"
 #: editor/filesystem_dock.cpp
 msgid "Search files"
 msgstr "Etsi tiedostoista"
-
-#: editor/filesystem_dock.cpp
-msgid "Instance the selected scene(s) as child of the selected node."
-msgstr "Luo valituista skeneistä ilmentymä valitun solmun alle."
 
 #: editor/filesystem_dock.cpp
 msgid ""
@@ -3440,22 +3572,6 @@ msgid "Create Polygon"
 msgstr "Luo polygoni"
 
 #: editor/plugins/abstract_polygon_2d_editor.cpp
-msgid "Edit Polygon"
-msgstr "Muokkaa polygonia"
-
-#: editor/plugins/abstract_polygon_2d_editor.cpp
-msgid "Insert Point"
-msgstr "Lisää piste"
-
-#: editor/plugins/abstract_polygon_2d_editor.cpp
-msgid "Edit Polygon (Remove Point)"
-msgstr "Muokkaa polygonia (poista piste)"
-
-#: editor/plugins/abstract_polygon_2d_editor.cpp
-msgid "Remove Polygon And Point"
-msgstr "Poista polygoni ja piste"
-
-#: editor/plugins/abstract_polygon_2d_editor.cpp
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 msgid "Create points."
@@ -3476,6 +3592,22 @@ msgstr ""
 msgid "Erase points."
 msgstr "Pyyhi pisteitä."
 
+#: editor/plugins/abstract_polygon_2d_editor.cpp
+msgid "Edit Polygon"
+msgstr "Muokkaa polygonia"
+
+#: editor/plugins/abstract_polygon_2d_editor.cpp
+msgid "Insert Point"
+msgstr "Lisää piste"
+
+#: editor/plugins/abstract_polygon_2d_editor.cpp
+msgid "Edit Polygon (Remove Point)"
+msgstr "Muokkaa polygonia (poista piste)"
+
+#: editor/plugins/abstract_polygon_2d_editor.cpp
+msgid "Remove Polygon And Point"
+msgstr "Poista polygoni ja piste"
+
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 #: editor/plugins/animation_player_editor_plugin.cpp
@@ -3493,10 +3625,41 @@ msgstr "Lataa..."
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
+msgid "Move Node Point"
+msgstr "Siirrä solmupistettä"
+
+#: editor/plugins/animation_blend_space_1d_editor.cpp
+msgid "Change BlendSpace1D Limits"
+msgstr "Muuta BlendSpace1D rajoja"
+
+#: editor/plugins/animation_blend_space_1d_editor.cpp
+msgid "Change BlendSpace1D Labels"
+msgstr "Muuta BlendSpace1D nimikkeitä"
+
+#: editor/plugins/animation_blend_space_1d_editor.cpp
+#: editor/plugins/animation_blend_space_2d_editor.cpp
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "This type of node can't be used. Only root nodes are allowed."
 msgstr ""
 "Tämän tyyppistä solmua ei voi käyttää. Vain juurisolmut ovat sallittuja."
+
+#: editor/plugins/animation_blend_space_1d_editor.cpp
+#: editor/plugins/animation_blend_space_2d_editor.cpp
+msgid "Add Node Point"
+msgstr "Lisää solmupiste"
+
+#: editor/plugins/animation_blend_space_1d_editor.cpp
+#: editor/plugins/animation_blend_space_2d_editor.cpp
+msgid "Add Animation Point"
+msgstr "Lisää animaatiopiste"
+
+#: editor/plugins/animation_blend_space_1d_editor.cpp
+msgid "Remove BlendSpace1D Point"
+msgstr "Poista BlendSpace1D piste"
+
+#: editor/plugins/animation_blend_space_1d_editor.cpp
+msgid "Move BlendSpace1D Node Point"
+msgstr "Siirrä BlendSpace1D solmupistettä"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
@@ -3542,12 +3705,36 @@ msgid "Triangle already exists"
 msgstr "Kolmio on jo olemassa"
 
 #: editor/plugins/animation_blend_space_2d_editor.cpp
+msgid "Add Triangle"
+msgstr "Lisää kolmio"
+
+#: editor/plugins/animation_blend_space_2d_editor.cpp
+msgid "Change BlendSpace2D Limits"
+msgstr "Muuta BlendSpace2D rajoja"
+
+#: editor/plugins/animation_blend_space_2d_editor.cpp
+msgid "Change BlendSpace2D Labels"
+msgstr "Muuta BlendSpace2D nimikkeitä"
+
+#: editor/plugins/animation_blend_space_2d_editor.cpp
+msgid "Remove BlendSpace2D Point"
+msgstr "Poista BlendSpace2D piste"
+
+#: editor/plugins/animation_blend_space_2d_editor.cpp
+msgid "Remove BlendSpace2D Triangle"
+msgstr "Poista BlendSpace2D kolmio"
+
+#: editor/plugins/animation_blend_space_2d_editor.cpp
 msgid "BlendSpace2D does not belong to an AnimationTree node."
 msgstr "BlendSpace2D ei kuulu AnimationTree solmuun."
 
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 msgid "No triangles exist, so no blending can take place."
 msgstr "Kolmioita ei ole olemassa, joten mitään sulautusta ei tapahdu."
+
+#: editor/plugins/animation_blend_space_2d_editor.cpp
+msgid "Toggle Auto Triangles"
+msgstr "Aseta automaattiset kolmiot"
 
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 msgid "Create triangles by connecting points."
@@ -3567,6 +3754,10 @@ msgid "Blend:"
 msgstr "Sulautus:"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
+msgid "Parameter Changed"
+msgstr "Parametri muutettu"
+
+#: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
 msgid "Edit Filters"
 msgstr "Muokkaa suodattimia"
@@ -3576,10 +3767,46 @@ msgid "Output node can't be added to the blend tree."
 msgstr "Lähtösolmua ei voida lisätä sulautuspuuhun."
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
+msgid "Add Node to BlendTree"
+msgstr "Lisää BlendTree solmu"
+
+#: editor/plugins/animation_blend_tree_editor_plugin.cpp
+#: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Node Moved"
+msgstr "Solmu siirretty"
+
+#: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Unable to connect, port may be in use or connection may be invalid."
 msgstr ""
 "Ei voida yhdistää, portti voi olla käytössä tai yhteys voi olla virheellinen."
+
+#: editor/plugins/animation_blend_tree_editor_plugin.cpp
+#: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Nodes Connected"
+msgstr "Solmuja yhdistetty"
+
+#: editor/plugins/animation_blend_tree_editor_plugin.cpp
+#: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Nodes Disconnected"
+msgstr "Solmujen yhteyksiä katkaistu"
+
+#: editor/plugins/animation_blend_tree_editor_plugin.cpp
+msgid "Set Animation"
+msgstr "Aseta animaatio"
+
+#: editor/plugins/animation_blend_tree_editor_plugin.cpp
+#: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Delete Node"
+msgstr "Poista solmu"
+
+#: editor/plugins/animation_blend_tree_editor_plugin.cpp
+msgid "Toggle Filter On/Off"
+msgstr "Kytke suodin päälle/pois"
+
+#: editor/plugins/animation_blend_tree_editor_plugin.cpp
+msgid "Change Filter"
+msgstr "Muuta suodinta"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 msgid "No animation player set, so unable to retrieve track names."
@@ -3599,6 +3826,11 @@ msgid ""
 msgstr ""
 "Animaatiotoistimella ei ole kelvollista juurisolmun polkua, joten raitojen "
 "nimien haku ei onnistu."
+
+#: editor/plugins/animation_blend_tree_editor_plugin.cpp
+#: editor/plugins/animation_state_machine_editor.cpp
+msgid "Node Renamed"
+msgstr "Solmu uudelleennimetty"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/visual_shader_editor_plugin.cpp
@@ -3826,6 +4058,19 @@ msgid "Cross-Animation Blend Times"
 msgstr "Lomittautuvien animaatioiden sulautusajat"
 
 #: editor/plugins/animation_state_machine_editor.cpp
+msgid "Move Node"
+msgstr "Siirrä solmua"
+
+#: editor/plugins/animation_state_machine_editor.cpp
+msgid "Add Transition"
+msgstr "Lisää siirtymä"
+
+#: editor/plugins/animation_state_machine_editor.cpp
+#: modules/visual_script/visual_script_editor.cpp
+msgid "Add Node"
+msgstr "Lisää solmu"
+
+#: editor/plugins/animation_state_machine_editor.cpp
 msgid "End"
 msgstr "End"
 
@@ -3852,6 +4097,18 @@ msgstr "Alku- ja loppusolmut tarvitaan alisiirtymään."
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "No playback resource set at path: %s."
 msgstr "Polulle ei ole asetettu toistoresurssia: %s."
+
+#: editor/plugins/animation_state_machine_editor.cpp
+msgid "Node Removed"
+msgstr "Solmu poistettu"
+
+#: editor/plugins/animation_state_machine_editor.cpp
+msgid "Transition Removed"
+msgstr "Siirtymä poistettu"
+
+#: editor/plugins/animation_state_machine_editor.cpp
+msgid "Set Start Node (Autoplay)"
+msgstr "Aseta alkusolmu (automaattitoisto)"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid ""
@@ -4279,16 +4536,15 @@ msgstr "Siirrä CanvasItemiä"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Presets for the anchors and margins values of a Control node."
-msgstr ""
+msgstr "Control solmun ankkureiden ja marginaalien arvojen esiasetukset."
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid ""
 "Children of containers have their anchors and margins values overridden by "
 "their parent."
 msgstr ""
-"Varoitus: Säilön alisolmujen sijainti ja koko määrittyy vain niiden "
-"isäntäsolmun perusteella."
+"Säilön alisolmujen ankkurien ja marginaalien arvot ylikirjoittuvat niiden "
+"isäntäsolmun toimesta."
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Anchors only"
@@ -4676,6 +4932,10 @@ msgstr "Pidä shift pohjassa muokataksesi tangentteja yksitellen"
 msgid "Bake GI Probe"
 msgstr "Kehitä GI Probe"
 
+#: editor/plugins/gradient_editor_plugin.cpp
+msgid "Gradient Edited"
+msgstr "Liukuväriä muokattu"
+
 #: editor/plugins/item_list_editor_plugin.cpp
 msgid "Item %d"
 msgstr "Kohde %d"
@@ -4934,6 +5194,10 @@ msgid "Generating Visibility Rect"
 msgstr "Kartoitetaan näkyvää aluetta"
 
 #: editor/plugins/particles_2d_editor_plugin.cpp
+msgid "Generate Visibility Rect"
+msgstr "Kartoita näkyvä alue"
+
+#: editor/plugins/particles_2d_editor_plugin.cpp
 msgid "Can only set point into a ParticlesMaterial process material"
 msgstr ""
 "Piste voidaan asettaa ainoastaan ParticlesMaterial käsittelyn materiaaliin"
@@ -4945,10 +5209,6 @@ msgstr "Virhe ladattaessa kuvaa:"
 #: editor/plugins/particles_2d_editor_plugin.cpp
 msgid "No pixels with transparency > 128 in image..."
 msgstr "Kuvassa ei ole pikseleitä, joiden läpinäkyvyys on enemmän kuin 128…"
-
-#: editor/plugins/particles_2d_editor_plugin.cpp
-msgid "Generate Visibility Rect"
-msgstr "Kartoita näkyvä alue"
 
 #: editor/plugins/particles_2d_editor_plugin.cpp
 msgid "Load Emission Mask"
@@ -5038,12 +5298,12 @@ msgid "Generating AABB"
 msgstr "Luodaan AABB"
 
 #: editor/plugins/particles_editor_plugin.cpp
-msgid "Generate AABB"
-msgstr "Luo AABB"
-
-#: editor/plugins/particles_editor_plugin.cpp
 msgid "Generate Visibility AABB"
 msgstr "Kartoita näkyvä alue"
+
+#: editor/plugins/particles_editor_plugin.cpp
+msgid "Generate AABB"
+msgstr "Luo AABB"
 
 #: editor/plugins/path_2d_editor_plugin.cpp
 msgid "Remove Point from Curve"
@@ -5197,6 +5457,14 @@ msgstr ""
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 msgid "Create UV Map"
 msgstr "Luo UV kartta"
+
+#: editor/plugins/polygon_2d_editor_plugin.cpp
+msgid ""
+"Polygon 2D has internal vertices, so it can no longer be edited in the "
+"viewport."
+msgstr ""
+"2D-polygonilla on sisäisiä kärkipisteitä, joten sitä ei voi enää muokata "
+"näyttöruudussa."
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 msgid "Create Polygon & UV"
@@ -5817,6 +6085,14 @@ msgid "This skeleton has no bones, create some children Bone2D nodes."
 msgstr "Tällä luurangolla ei ole luita, luo joitakin Bone2D alisolmuja."
 
 #: editor/plugins/skeleton_2d_editor_plugin.cpp
+msgid "Create Rest Pose from Bones"
+msgstr "Luo lepoasento luista"
+
+#: editor/plugins/skeleton_2d_editor_plugin.cpp
+msgid "Set Rest Pose to Bones"
+msgstr "Aseta lepoasento luille"
+
+#: editor/plugins/skeleton_2d_editor_plugin.cpp
 msgid "Skeleton2D"
 msgstr "Skeleton2D"
 
@@ -5925,10 +6201,6 @@ msgid "Vertices"
 msgstr "Kärkipisteet"
 
 #: editor/plugins/spatial_editor_plugin.cpp
-msgid "FPS"
-msgstr "FPS"
-
-#: editor/plugins/spatial_editor_plugin.cpp
 msgid "Top View."
 msgstr "Pintanäkymä."
 
@@ -5973,7 +6245,7 @@ msgid "Rear"
 msgstr "Taka"
 
 #: editor/plugins/spatial_editor_plugin.cpp
-msgid "Align with view"
+msgid "Align with View"
 msgstr "Kohdista näkymään"
 
 #: editor/plugins/spatial_editor_plugin.cpp editor/scene_tree_dock.cpp
@@ -6065,12 +6337,24 @@ msgid "Freelook Speed Modifier"
 msgstr "Liikkumisen nopeussäädin"
 
 #: editor/plugins/spatial_editor_plugin.cpp
+msgid ""
+"Note: The FPS value displayed is the editor's framerate.\n"
+"It cannot be used as a reliable indication of in-game performance."
+msgstr ""
+"Huom: näytetty FPS-lukema on editorin kuvataajuus.\n"
+"Sitä ei voi käyttää luotettavana pelin sisäisenä tehokkuuden ilmaisimena."
+
+#: editor/plugins/spatial_editor_plugin.cpp
 msgid "View Rotation Locked"
 msgstr "Näkymän kierto lukittu"
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "XForm Dialog"
 msgstr "XForm-ikkuna"
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Snap Nodes To Floor"
+msgstr "Tarraa solmut lattiaan"
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Select Mode (Q)"
@@ -6288,7 +6572,6 @@ msgid "Post"
 msgstr "Jälki"
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Nameless gizmo"
 msgstr "Nimetön muokkain"
 
@@ -6353,10 +6636,6 @@ msgid "Add Empty"
 msgstr "Lisää tyhjä"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-msgid "Change Animation Loop"
-msgstr "Vaihda animaation luuppia"
-
-#: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "Change Animation FPS"
 msgstr "Vaihda animaation nopeutta"
 
@@ -6365,14 +6644,12 @@ msgid "(empty)"
 msgstr "(tyhjä)"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "Animations:"
-msgstr "Animaatiot"
+msgstr "Animaatiot:"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "New Animation"
-msgstr "Animaatio"
+msgstr "Uusi animaatio"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "Speed (FPS):"
@@ -6383,9 +6660,8 @@ msgid "Loop"
 msgstr "Toista"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "Animation Frames:"
-msgstr "Animaatioruudut"
+msgstr "Animaatioruudut:"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "Insert Empty (Before)"
@@ -6673,6 +6949,22 @@ msgid "Merge from Scene"
 msgstr "Yhdistä skenestä"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Next Coordinate"
+msgstr "Seuraava koordinaatti"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Select the next shape, subtile, or Tile."
+msgstr "Valitse seuraava muoto, aliruutu tai ruutu."
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Previous Coordinate"
+msgstr "Edellinen koordinaatti"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Select the previous shape, subtile, or Tile."
+msgstr "Valitse edellinen muoto, aliruutu tai ruutu."
+
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Copy bitmask."
 msgstr "Kopioi bittimaski."
 
@@ -6683,6 +6975,10 @@ msgstr "Liitä bittimaski."
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Erase bitmask."
 msgstr "Pyyhi bittimaski."
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Create a new rectangle."
+msgstr "Luo uusi suorakulmio."
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create a new polygon."
@@ -6822,6 +7118,14 @@ msgid "Clear Tile Bitmask"
 msgstr "Tyhjennä ruudun bittimaski"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Make Polygon Concave"
+msgstr "Tee polygonista konkaavi"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Make Polygon Convex"
+msgstr "Tee polygonista konveksi"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Remove Tile"
 msgstr "Poista ruutu"
 
@@ -6862,12 +7166,32 @@ msgid "TileSet"
 msgstr "Ruutuvalikoima"
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Set Uniform Name"
+msgstr "Aseta uniformin nimi"
+
+#: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Set Input Default Port"
+msgstr "Aseta syötteen oletusportti"
+
+#: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Add Node to Visual Shader"
+msgstr "Lisää solmu Visual Shaderiin"
+
+#: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Duplicate Nodes"
+msgstr "Kahdenna solmut"
+
+#: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Visual Shader Input Type Changed"
+msgstr "Visual Shaderin syötteen tyyppi vaihdettu"
+
+#: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Vertex"
-msgstr "Vertex"
+msgstr "Kärkipiste"
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Fragment"
-msgstr "Fragment"
+msgstr "Fragmentti"
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Light"
@@ -6876,6 +7200,14 @@ msgstr "Valo"
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "VisualShader"
 msgstr "VisualShader"
+
+#: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Edit Visual Property"
+msgstr "Muokkaa visuaalista ominaisuutta"
+
+#: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "Visual Shader Mode Changed"
+msgstr "Visual Shaderin tila vaihdettu"
 
 #: editor/project_export.cpp
 msgid "Runnable"
@@ -6890,8 +7222,22 @@ msgid "Delete preset '%s'?"
 msgstr "Poista esiasetus '%s'?"
 
 #: editor/project_export.cpp
-msgid "Export templates for this platform are missing/corrupted:"
-msgstr "Vientimallit tälle alustalle puuttuvat tai ovat viallisia:"
+msgid ""
+"Failed to export the project for platform '%s'.\n"
+"Export templates seem to be missing or invalid."
+msgstr ""
+"Projektin vienti alustalle '%s' epäonnistui.\n"
+"Vientimallit näyttävät puuttuvan tai olevan virheellisiä."
+
+#: editor/project_export.cpp
+msgid ""
+"Failed to export the project for platform '%s'.\n"
+"This might be due to a configuration issue in the export preset or your "
+"export settings."
+msgstr ""
+"Projektin vienti alustalle '%s' epäonnistui.\n"
+"Tämä saattaa johtua asetusongelmista viennin esiasetuksissa tai vientisi "
+"asetuksissa."
 
 #: editor/project_export.cpp
 msgid "Release"
@@ -6900,6 +7246,14 @@ msgstr "Julkaisuversio"
 #: editor/project_export.cpp
 msgid "Exporting All"
 msgstr "Viedään kaikki"
+
+#: editor/project_export.cpp
+msgid "The given export path doesn't exist:"
+msgstr "Annettu vientipolku ei ole olemassa:"
+
+#: editor/project_export.cpp
+msgid "Export templates for this platform are missing/corrupted:"
+msgstr "Vientimallit tälle alustalle puuttuvat tai ovat viallisia:"
 
 #: editor/project_export.cpp
 msgid "Presets"
@@ -7191,7 +7545,6 @@ msgid "Are you sure to open more than one project?"
 msgstr "Haluatko varmasti avata useamman kuin yhden projektin?"
 
 #: editor/project_manager.cpp
-#, fuzzy
 msgid ""
 "The following project settings file does not specify the version of Godot "
 "through which it was created.\n"
@@ -7203,12 +7556,13 @@ msgid ""
 "Warning: You will not be able to open the project with previous versions of "
 "the engine anymore."
 msgstr ""
-"Seuraava projektin asetustiedosto on luotu vanhemmalla versiolla ja täytyy "
-"muuntaa tätä versiota varten:\n"
+"Seuraava projektin asetustiedosto ei määrittele Godotin versiota, jolla se "
+"on luotu.\n"
 "\n"
 "%s\n"
 "\n"
-"Haluatko muuntaa sen?\n"
+"Jos haluat jatkaa sen avaamista, se muunnetaan nykyiseen Godotin "
+"asetustiedostomuotoon.\n"
 "Varoitus: et voi avata projektia tämän jälkeen enää vanhemmilla versioilla."
 
 #: editor/project_manager.cpp
@@ -7936,6 +8290,10 @@ msgid "Instantiated scenes can't become root"
 msgstr "Skenejen ilmentymiä ei voi asettaa juureksi"
 
 #: editor/scene_tree_dock.cpp
+msgid "Make node as Root"
+msgstr "Tee solmusta juurisolmu"
+
+#: editor/scene_tree_dock.cpp
 msgid "Delete Node(s)?"
 msgstr "Poista solmu(t)?"
 
@@ -7970,6 +8328,10 @@ msgstr "Lataa paikanpitäjäksi"
 #: editor/scene_tree_dock.cpp
 msgid "Make Local"
 msgstr "Tee paikallinen"
+
+#: editor/scene_tree_dock.cpp
+msgid "New Scene Root"
+msgstr "Uusi skenen juuri"
 
 #: editor/scene_tree_dock.cpp
 msgid "Create Root Node:"
@@ -8321,7 +8683,7 @@ msgstr "Aliprosessi yhdistetty"
 
 #: editor/script_editor_debugger.cpp
 msgid "Copy Error"
-msgstr "Kopiointivirhe"
+msgstr "Kopioi virhe"
 
 #: editor/script_editor_debugger.cpp
 msgid "Inspect Previous Instance"
@@ -8398,6 +8760,18 @@ msgstr "Juuren suora muokkaus:"
 #: editor/script_editor_debugger.cpp
 msgid "Set From Tree"
 msgstr "Aseta puusta"
+
+#: editor/settings_config_dialog.cpp
+msgid "Erase Shortcut"
+msgstr "Poista pikanäppäin"
+
+#: editor/settings_config_dialog.cpp
+msgid "Restore Shortcut"
+msgstr "Palauta pikanäppäin"
+
+#: editor/settings_config_dialog.cpp
+msgid "Change Shortcut"
+msgstr "Muuta pikanäppäintä"
 
 #: editor/settings_config_dialog.cpp
 msgid "Shortcuts"
@@ -8606,6 +8980,10 @@ msgstr "Täytä valinta"
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "GridMap Duplicate Selection"
 msgstr "Kahdenna valinta"
+
+#: modules/gridmap/grid_map_editor_plugin.cpp
+msgid "GridMap Paint"
+msgstr "Ruudukon maalaus"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Grid Map"
@@ -8908,10 +9286,6 @@ msgid "Change Expression"
 msgstr "Vaihda lauseketta"
 
 #: modules/visual_script/visual_script_editor.cpp
-msgid "Add Node"
-msgstr "Lisää solmu"
-
-#: modules/visual_script/visual_script_editor.cpp
 msgid "Remove VisualScript Nodes"
 msgstr "Poista VisualScript solmut"
 
@@ -8995,6 +9369,10 @@ msgstr "Skriptillä on jo funktio '%s'"
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Change Input Value"
 msgstr "Vaihda syötteen arvo"
+
+#: modules/visual_script/visual_script_editor.cpp
+msgid "Resize Comment"
+msgstr "Muokkaa kommentin kokoa"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Can't copy the function node."
@@ -9419,6 +9797,9 @@ msgid ""
 "Use the CPUParticles2D node instead. You can use the \"Convert to "
 "CPUParticles\" option for this purpose."
 msgstr ""
+"GPU-pohjaiset partikkelit eivät ole tuettuja GLES2 näyttöajurilla.\n"
+"Käytä sen sijaan CPUParticles2D solmua. Voit käyttää \"Muunna "
+"CPUPartikkeleiksi\" toimintoa tähän tarkoitukseen."
 
 #: scene/2d/particles_2d.cpp scene/3d/particles.cpp
 msgid ""
@@ -9579,6 +9960,14 @@ msgstr ""
 "CollisionShape solmulle täytyy antaa muoto, jotta se toimisi. Ole hyvä ja "
 "luo sille muotoresurssi!"
 
+#: scene/3d/collision_shape.cpp
+msgid ""
+"Plane shapes don't work well and will be removed in future versions. Please "
+"don't use them."
+msgstr ""
+"Tasomuodot eivät toimi hyvin ja ne tullaan poistaamaan tulevissa versioissa. "
+"Ole hyvä ja älä käytä niitä."
+
 #: scene/3d/cpu_particles.cpp
 msgid "Nothing is visible because no mesh has been assigned."
 msgstr "Mitään ei näy, koska meshiä ei ole asetettu."
@@ -9594,6 +9983,14 @@ msgstr ""
 #: scene/3d/gi_probe.cpp
 msgid "Plotting Meshes"
 msgstr "Piirretään meshejä"
+
+#: scene/3d/gi_probe.cpp
+msgid ""
+"GIProbes are not supported by the GLES2 video driver.\n"
+"Use a BakedLightmap instead."
+msgstr ""
+"GIProbe ei ole tuettu GLES2 näyttöajurissa.\n"
+"Käytä sen sijaan BakedLightmap resurssia."
 
 #: scene/3d/navigation_mesh.cpp
 msgid "A NavigationMesh resource must be set or created for this node to work."
@@ -9615,6 +10012,9 @@ msgid ""
 "Use the CPUParticles node instead. You can use the \"Convert to CPUParticles"
 "\" option for this purpose."
 msgstr ""
+"GPU-pohjaiset partikkelit eivät ole tuettuja GLES2 näyttöajurilla.\n"
+"Käytä sen sijaan CPUParticles solmua. Voit käyttää \"Muunna CPUPartikkeleiksi"
+"\" toimintoa tähän tarkoitukseen."
 
 #: scene/3d/particles.cpp
 msgid ""
@@ -9657,26 +10057,6 @@ msgstr ""
 msgid "Path property must point to a valid Spatial node to work."
 msgstr "Polkuominaisuuden täytyy osoittaa Spatial solmuun toimiakseen."
 
-#: scene/3d/scenario_fx.cpp
-msgid "WorldEnvironment needs an Environment resource."
-msgstr "WorldEnvironment tarvitsee Environment resurssin."
-
-#: scene/3d/scenario_fx.cpp
-msgid ""
-"Only one WorldEnvironment is allowed per scene (or set of instanced scenes)."
-msgstr ""
-"Vain yksi WorldEnvironment on sallittu per skene (tai per skeneilmentymien "
-"joukko)."
-
-#: scene/3d/scenario_fx.cpp
-msgid ""
-"This WorldEnvironment is ignored. Either add a Camera (for 3D scenes) or set "
-"this environment's Background Mode to Canvas (for 2D scenes)."
-msgstr ""
-"Tämä WorldEnvironment jätetään huomioimatta. Lisää joko Camera (3D-"
-"skeneille) tai aseta tälle ympäristölle Background Mode asetukseksi Canvas "
-"(2D-skeneille)."
-
 #: scene/3d/soft_body.cpp
 msgid "This body will be ignored until you set a mesh"
 msgstr "Tämä kappale sivuutetaan, kunnes asetat meshin"
@@ -9705,6 +10085,26 @@ msgid ""
 msgstr ""
 "VehicleWheel solmu tarjoaa rengasjärjestelmän VehicleBody solmulle. Ole hyvä "
 "ja käytä sitä VehicleBody solmun alla."
+
+#: scene/3d/world_environment.cpp
+msgid "WorldEnvironment needs an Environment resource."
+msgstr "WorldEnvironment tarvitsee Environment resurssin."
+
+#: scene/3d/world_environment.cpp
+msgid ""
+"Only one WorldEnvironment is allowed per scene (or set of instanced scenes)."
+msgstr ""
+"Vain yksi WorldEnvironment on sallittu per skene (tai per skeneilmentymien "
+"joukko)."
+
+#: scene/3d/world_environment.cpp
+msgid ""
+"This WorldEnvironment is ignored. Either add a Camera (for 3D scenes) or set "
+"this environment's Background Mode to Canvas (for 2D scenes)."
+msgstr ""
+"Tämä WorldEnvironment jätetään huomioimatta. Lisää joko Camera (3D-"
+"skeneille) tai aseta tälle ympäristölle Background Mode asetukseksi Canvas "
+"(2D-skeneille)."
 
 #: scene/animation/animation_blend_tree.cpp
 msgid "On BlendTree node '%s', animation not found: '%s'"
@@ -9736,8 +10136,7 @@ msgstr "Polku animaatiot sisältävään AnimationPlayer solmuun on asettamatta.
 
 #: scene/animation/animation_tree.cpp
 msgid "Path set for AnimationPlayer does not lead to an AnimationPlayer node."
-msgstr ""
-"AnimationPlayer solmulle asetettu polku ei johda AnimationPlayer solmuun."
+msgstr "AnimationPlayerille asetettu polku ei johda AnimationPlayer solmuun."
 
 #: scene/animation/animation_tree.cpp
 msgid "AnimationPlayer root is not a valid node."
@@ -9750,7 +10149,7 @@ msgstr ""
 
 #: scene/gui/color_picker.cpp
 msgid "Pick a color from the screen."
-msgstr ""
+msgstr "Valitse väri ruudulta."
 
 #: scene/gui/color_picker.cpp
 msgid "Raw Mode"
@@ -9758,11 +10157,23 @@ msgstr "Raakatila"
 
 #: scene/gui/color_picker.cpp
 msgid "Switch between hexadecimal and code values."
-msgstr ""
+msgstr "Vaihda heksadesimaali- ja koodiarvojen välillä."
 
 #: scene/gui/color_picker.cpp
-msgid "Add current color as a preset"
-msgstr "Lisää nykyinen väri esiasetukseksi"
+msgid "Add current color as a preset."
+msgstr "Lisää nykyinen väri esiasetukseksi."
+
+#: scene/gui/container.cpp
+msgid ""
+"Container by itself serves no purpose unless a script configures it's "
+"children placement behavior.\n"
+"If you dont't intend to add a script, then please use a plain 'Control' node "
+"instead."
+msgstr ""
+"Säilöllä ei ole itsessään mitään merkitystä ellei jokin skripti säädä sen "
+"alisolmujen sijoitustapaa.\n"
+"Jos et aio lisätä skriptiä, ole hyvä ja käytä sen sijaan tavallista "
+"'Control' solmua."
 
 #: scene/gui/dialogs.cpp
 msgid "Alert!"
@@ -9771,6 +10182,10 @@ msgstr "Huomio!"
 #: scene/gui/dialogs.cpp
 msgid "Please Confirm..."
 msgstr "Ole hyvä ja vahvista..."
+
+#: scene/gui/file_dialog.cpp
+msgid "Go to parent folder."
+msgstr "Siirry yläkansioon."
 
 #: scene/gui/popup.cpp
 msgid ""
@@ -9855,6 +10270,12 @@ msgstr "Sijoitus uniformille."
 #: servers/visual/shader_language.cpp
 msgid "Varyings can only be assigned in vertex function."
 msgstr "Varying tyypin voi sijoittaa vain vertex-funktiossa."
+
+#~ msgid "Instance the selected scene(s) as child of the selected node."
+#~ msgstr "Luo valituista skeneistä ilmentymä valitun solmun alle."
+
+#~ msgid "FPS"
+#~ msgstr "FPS"
 
 #~ msgid "Warnings:"
 #~ msgstr "Varoitukset:"
@@ -10025,9 +10446,6 @@ msgstr "Varying tyypin voi sijoittaa vain vertex-funktiossa."
 
 #~ msgid "Convert To Lowercase"
 #~ msgstr "Muunna pieniksi kirjaimiksi"
-
-#~ msgid "Snap To Floor"
-#~ msgstr "Tartu lattiaan"
 
 #~ msgid "Rotate 0 degrees"
 #~ msgstr "Käännä 0 astetta"
@@ -10521,9 +10939,6 @@ msgstr "Varying tyypin voi sijoittaa vain vertex-funktiossa."
 #~ msgid "Added:"
 #~ msgstr "Lisätty:"
 
-#~ msgid "Removed:"
-#~ msgstr "Poistettu:"
-
 #~ msgid "Error loading scene."
 #~ msgstr "Virhe ladatessa Sceneä."
 
@@ -10689,9 +11104,6 @@ msgstr "Varying tyypin voi sijoittaa vain vertex-funktiossa."
 
 #~ msgid "Error importing:"
 #~ msgstr "Virhe tuotaessa:"
-
-#~ msgid "Only one file is required for large texture."
-#~ msgstr "Vain yksi tiedosto vaaditaan suurikokoiselle tekstuurille."
 
 #~ msgid "Max Texture Size:"
 #~ msgstr "Tekstuurin enimmäiskoko:"

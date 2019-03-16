@@ -2071,17 +2071,17 @@ void Collada::_parse_library(XMLParser &parser) {
 			} else if (name == "geometry") {
 
 				String id = parser.get_attribute_value("id");
-				String name = parser.get_attribute_value_safe("name");
+				String name2 = parser.get_attribute_value_safe("name");
 				while (parser.read() == OK) {
 
 					if (parser.get_node_type() == XMLParser::NODE_ELEMENT) {
 
 						if (parser.get_node_name() == "mesh") {
-							state.mesh_name_map[id] = (name != "") ? name : id;
-							_parse_mesh_geometry(parser, id, name);
+							state.mesh_name_map[id] = (name2 != "") ? name2 : id;
+							_parse_mesh_geometry(parser, id, name2);
 						} else if (parser.get_node_name() == "spline") {
-							state.mesh_name_map[id] = (name != "") ? name : id;
-							_parse_curve_geometry(parser, id, name);
+							state.mesh_name_map[id] = (name2 != "") ? name2 : id;
+							_parse_curve_geometry(parser, id, name2);
 						} else if (!parser.is_empty())
 							parser.skip_section();
 					} else if (parser.get_node_type() == XMLParser::NODE_ELEMENT_END && parser.get_node_name() == "geometry")
@@ -2356,9 +2356,8 @@ bool Collada::_optimize_skeletons(VisualScene *p_vscene, Node *p_node) {
 
 bool Collada::_move_geometry_to_skeletons(VisualScene *p_vscene, Node *p_node, List<Node *> *p_mgeom) {
 
-	// bind shape matrix escala los huesos y los hace gigantes, asi la matriz despues achica
-	// al modelo?
-	// solucion: aplicarle la bind shape matrix a los VERTICES, y si el objeto viene con escala, se la dejo me parece!
+	// Bind Shape Matrix scales the bones and makes them gigantic, so the matrix then shrinks the model?
+	// Solution: apply the Bind Shape Matrix to the VERTICES, and if the object comes scaled, it seems to be left alone!
 
 	if (p_node->type == Node::TYPE_GEOMETRY) {
 

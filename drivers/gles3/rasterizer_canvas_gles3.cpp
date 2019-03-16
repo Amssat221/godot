@@ -222,11 +222,11 @@ RasterizerStorageGLES3::Texture *RasterizerCanvasGLES3::_bind_canvas_texture(con
 
 		} else {
 
-			texture = texture->get_ptr();
-
 			if (texture->redraw_if_visible) { //check before proxy, because this is usually used with proxies
 				VisualServerRaster::redraw_request();
 			}
+
+			texture = texture->get_ptr();
 
 			if (texture->render_target)
 				texture->render_target->used_in_frame = true;
@@ -263,11 +263,11 @@ RasterizerStorageGLES3::Texture *RasterizerCanvasGLES3::_bind_canvas_texture(con
 
 		} else {
 
-			normal_map = normal_map->get_ptr();
-
 			if (normal_map->redraw_if_visible) { //check before proxy, because this is usually used with proxies
 				VisualServerRaster::redraw_request();
 			}
+
+			normal_map = normal_map->get_ptr();
 
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, normal_map->tex_id);
@@ -581,10 +581,10 @@ void RasterizerCanvasGLES3::_canvas_item_render_commands(Item *p_item, Item *cur
 #ifdef GLES_OVER_GL
 					if (line->antialiased) {
 						glEnable(GL_LINE_SMOOTH);
-						for (int i = 0; i < 4; i++) {
+						for (int j = 0; j < 4; j++) {
 							Vector2 vertsl[2] = {
-								verts[i],
-								verts[(i + 1) % 4],
+								verts[j],
+								verts[(j + 1) % 4],
 							};
 							_draw_gui_primitive(2, vertsl, NULL, NULL);
 						}
@@ -782,8 +782,8 @@ void RasterizerCanvasGLES3::_canvas_item_render_commands(Item *p_item, Item *cur
 				}
 				if (primitive->colors.size() == 1 && primitive->points.size() > 1) {
 
-					Color c = primitive->colors[0];
-					glVertexAttrib4f(VS::ARRAY_COLOR, c.r, c.g, c.b, c.a);
+					Color col = primitive->colors[0];
+					glVertexAttrib4f(VS::ARRAY_COLOR, col.r, col.g, col.b, col.a);
 
 				} else if (primitive->colors.empty()) {
 					glVertexAttrib4f(VS::ARRAY_COLOR, 1, 1, 1, 1);
@@ -833,6 +833,8 @@ void RasterizerCanvasGLES3::_canvas_item_render_commands(Item *p_item, Item *cur
 						RasterizerStorageGLES3::Surface *s = mesh_data->surfaces[j];
 						// materials are ignored in 2D meshes, could be added but many things (ie, lighting mode, reading from screen, etc) would break as they are not meant be set up at this point of drawing
 						glBindVertexArray(s->array_id);
+
+						glVertexAttrib4f(VS::ARRAY_COLOR, 1, 1, 1, 1);
 
 						if (s->index_array_len) {
 							glDrawElements(gl_primitive[s->primitive], s->index_array_len, (s->array_len >= (1 << 16)) ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, 0);
@@ -1035,8 +1037,6 @@ void RasterizerCanvasGLES3::_canvas_item_render_commands(Item *p_item, Item *cur
 					glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, amount);
 				} else {
 					//split
-
-					int stride = sizeof(float) * 4 * 6;
 					int split = int(Math::ceil(particles->phase * particles->amount));
 
 					if (amount - split > 0) {
@@ -1099,12 +1099,12 @@ void RasterizerCanvasGLES3::_canvas_item_render_commands(Item *p_item, Item *cur
 				points[numpoints] = circle->pos;
 				int indices[numpoints * 3];
 
-				for (int i = 0; i < numpoints; i++) {
+				for (int j = 0; j < numpoints; j++) {
 
-					points[i] = circle->pos + Vector2(Math::sin(i * Math_PI * 2.0 / numpoints), Math::cos(i * Math_PI * 2.0 / numpoints)) * circle->radius;
-					indices[i * 3 + 0] = i;
-					indices[i * 3 + 1] = (i + 1) % numpoints;
-					indices[i * 3 + 2] = numpoints;
+					points[j] = circle->pos + Vector2(Math::sin(j * Math_PI * 2.0 / numpoints), Math::cos(j * Math_PI * 2.0 / numpoints)) * circle->radius;
+					indices[j * 3 + 0] = j;
+					indices[j * 3 + 1] = (j + 1) % numpoints;
+					indices[j * 3 + 2] = numpoints;
 				}
 
 				_bind_canvas_texture(RID(), RID());
@@ -1322,6 +1322,8 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 				glActiveTexture(GL_TEXTURE0 + storage->config.max_texture_image_units - 1);
 				glBindTexture(GL_TEXTURE_2D, skeleton->texture);
 				state.using_skeleton = true;
+				state.canvas_shader.set_uniform(CanvasShaderGLES3::SKELETON_TRANSFORM, state.skeleton_transform);
+				state.canvas_shader.set_uniform(CanvasShaderGLES3::SKELETON_TRANSFORM_INVERSE, state.skeleton_transform_inverse);
 			} else {
 				state.using_skeleton = false;
 			}
@@ -1402,11 +1404,11 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 						continue;
 					}
 
-					t = t->get_ptr();
-
 					if (t->redraw_if_visible) { //check before proxy, because this is usually used with proxies
 						VisualServerRaster::redraw_request();
 					}
+
+					t = t->get_ptr();
 
 					if (storage->config.srgb_decode_supported && t->using_srgb) {
 						//no srgb in 2D
@@ -1704,6 +1706,8 @@ void RasterizerCanvasGLES3::canvas_debug_viewport_shadows(Light *p_lights_with_s
 
 		light = light->shadows_next_ptr;
 	}
+
+	canvas_end();
 }
 
 void RasterizerCanvasGLES3::canvas_light_shadow_buffer_update(RID p_buffer, const Transform2D &p_light_xform, int p_light_mask, float p_near, float p_far, LightOccluderInstance *p_occluders, CameraMatrix *p_xform_cache) {

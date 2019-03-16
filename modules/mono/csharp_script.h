@@ -135,7 +135,7 @@ class CSharpScript : public Script {
 
 	// Do not use unless you know what you are doing
 	friend void GDMonoInternals::tie_managed_to_unmanaged(MonoObject *, Object *);
-	static Ref<CSharpScript> create_for_managed_type(GDMonoClass *p_class);
+	static Ref<CSharpScript> create_for_managed_type(GDMonoClass *p_class, GDMonoClass *p_native);
 
 protected:
 	static void _bind_methods();
@@ -162,7 +162,7 @@ public:
 	virtual bool has_script_signal(const StringName &p_signal) const;
 	virtual void get_script_signal_list(List<MethodInfo> *r_signals) const;
 
-	/* TODO */ virtual bool get_property_default_value(const StringName &p_property, Variant &r_value) const;
+	virtual bool get_property_default_value(const StringName &p_property, Variant &r_value) const;
 	virtual void get_script_property_list(List<PropertyInfo> *p_list) const;
 	virtual void update_exports();
 
@@ -309,8 +309,18 @@ class CSharpLanguage : public ScriptLanguage {
 
 	Dictionary scripts_metadata;
 
+	// For debug_break and debug_break_parse
+	int _debug_parse_err_line;
+	String _debug_parse_err_file;
+	String _debug_error;
+
+	friend class GDMono;
+	void _uninitialize_script_bindings();
+
 public:
 	StringNameCache string_names;
+
+	Mutex *get_language_bind_mutex() { return language_bind_mutex; }
 
 	_FORCE_INLINE_ int get_language_index() { return lang_idx; }
 	void set_language_index(int p_idx);
@@ -363,11 +373,11 @@ public:
 	/* TODO */ virtual void add_global_constant(const StringName &p_variable, const Variant &p_value) {}
 
 	/* DEBUGGER FUNCTIONS */
-	/* TODO */ virtual String debug_get_error() const { return ""; }
-	/* TODO */ virtual int debug_get_stack_level_count() const { return 1; }
-	/* TODO */ virtual int debug_get_stack_level_line(int p_level) const { return 1; }
-	/* TODO */ virtual String debug_get_stack_level_function(int p_level) const { return ""; }
-	/* TODO */ virtual String debug_get_stack_level_source(int p_level) const { return ""; }
+	virtual String debug_get_error() const;
+	virtual int debug_get_stack_level_count() const;
+	virtual int debug_get_stack_level_line(int p_level) const;
+	virtual String debug_get_stack_level_function(int p_level) const;
+	virtual String debug_get_stack_level_source(int p_level) const;
 	/* TODO */ virtual void debug_get_stack_level_locals(int p_level, List<String> *p_locals, List<Variant> *p_values, int p_max_subitems, int p_max_depth) {}
 	/* TODO */ virtual void debug_get_stack_level_members(int p_level, List<String> *p_members, List<Variant> *p_values, int p_max_subitems, int p_max_depth) {}
 	/* TODO */ virtual void debug_get_globals(List<String> *p_locals, List<Variant> *p_values, int p_max_subitems, int p_max_depth) {}
@@ -406,6 +416,7 @@ public:
 	virtual void refcount_incremented_instance_binding(Object *p_object);
 	virtual bool refcount_decremented_instance_binding(Object *p_object);
 
+	Map<Object *, CSharpScriptBinding>::Element *insert_script_binding(Object *p_object, const CSharpScriptBinding &p_script_binding);
 	bool setup_csharp_script_binding(CSharpScriptBinding &r_script_binding, Object *p_object);
 
 #ifdef DEBUG_ENABLED

@@ -90,12 +90,16 @@ void AudioDriver::input_buffer_init(int driver_buffer_frames) {
 
 void AudioDriver::input_buffer_write(int32_t sample) {
 
-	input_buffer.write[input_position++] = sample;
-	if (input_position >= input_buffer.size()) {
-		input_position = 0;
-	}
-	if (input_size < input_buffer.size()) {
-		input_size++;
+	if ((int)input_position < input_buffer.size()) {
+		input_buffer.write[input_position++] = sample;
+		if ((int)input_position >= input_buffer.size()) {
+			input_position = 0;
+		}
+		if ((int)input_size < input_buffer.size()) {
+			input_size++;
+		}
+	} else {
+		WARN_PRINTS("input_buffer_write: Invalid input_position=" + itos(input_position) + " input_buffer.size()=" + itos(input_buffer.size()));
 	}
 }
 
@@ -145,6 +149,8 @@ AudioDriver::AudioDriver() {
 
 	_last_mix_time = 0;
 	_mix_amount = 0;
+	input_position = 0;
+	input_size = 0;
 
 #ifdef DEBUG_ENABLED
 	prof_time = 0;
@@ -253,11 +259,13 @@ void AudioServer::_driver_process(int p_frames, int32_t *p_buffer) {
 
 					float l = CLAMP(buf[from + j].l, -1.0, 1.0);
 					int32_t vl = l * ((1 << 20) - 1);
-					p_buffer[(from_buf + j) * (cs * 2) + k * 2 + 0] = vl << 11;
+					int32_t vl2 = (vl < 0 ? -1 : 1) * (ABS(vl) << 11);
+					p_buffer[(from_buf + j) * (cs * 2) + k * 2 + 0] = vl2;
 
 					float r = CLAMP(buf[from + j].r, -1.0, 1.0);
 					int32_t vr = r * ((1 << 20) - 1);
-					p_buffer[(from_buf + j) * (cs * 2) + k * 2 + 1] = vr << 11;
+					int32_t vr2 = (vr < 0 ? -1 : 1) * (ABS(vr) << 11);
+					p_buffer[(from_buf + j) * (cs * 2) + k * 2 + 1] = vr2;
 				}
 
 			} else {
@@ -977,7 +985,7 @@ void AudioServer::update() {
 		uint64_t driver_time = AudioDriver::get_singleton()->get_profiling_time();
 		uint64_t server_time = prof_time;
 
-		// Substract the server time from the driver time
+		// Subtract the server time from the driver time
 		if (driver_time > server_time)
 			driver_time -= server_time;
 
@@ -995,7 +1003,7 @@ void AudioServer::update() {
 				values.push_back(String(bus->name) + bus->effects[j].effect->get_name());
 				values.push_back(USEC_TO_SEC(bus->effects[j].prof_time));
 
-				// Substract the effect time from the driver and server times
+				// Subtract the effect time from the driver and server times
 				if (driver_time > bus->effects[j].prof_time)
 					driver_time -= bus->effects[j].prof_time;
 				if (server_time > bus->effects[j].prof_time)

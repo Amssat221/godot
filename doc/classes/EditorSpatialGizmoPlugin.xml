@@ -134,7 +134,13 @@
 			<return type="String">
 			</return>
 			<description>
-				Override this method to provide the name that will appear in teh gizmo visibility menu.
+				Override this method to provide the name that will appear in the gizmo visibility menu.
+			</description>
+		</method>
+		<method name="get_priority" qualifiers="virtual">
+			<return type="String">
+			</return>
+			<description>
 			</description>
 		</method>
 		<method name="has_gizmo" qualifiers="virtual">

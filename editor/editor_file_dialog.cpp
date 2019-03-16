@@ -75,7 +75,7 @@ void EditorFileDialog::_notification(int p_what) {
 				preview_wheel_index++;
 				if (preview_wheel_index >= 8)
 					preview_wheel_index = 0;
-				Ref<Texture> frame = get_icon("WaitPreview" + itos(preview_wheel_index + 1), "EditorIcons");
+				Ref<Texture> frame = get_icon("Progress" + itos(preview_wheel_index + 1), "EditorIcons");
 				preview->set_texture(frame);
 				preview_wheel_timeout = 0.1;
 			}
@@ -323,11 +323,10 @@ void EditorFileDialog::_request_single_thumbnail(const String &p_path) {
 	if (!FileAccess::exists(p_path))
 		return;
 
-	EditorResourcePreview::get_singleton()->queue_resource_preview(p_path, this, "_thumbnail_done", p_path);
-
 	set_process(true);
 	preview_waiting = true;
 	preview_wheel_timeout = 0;
+	EditorResourcePreview::get_singleton()->queue_resource_preview(p_path, this, "_thumbnail_done", p_path);
 }
 
 void EditorFileDialog::_action_pressed() {
@@ -853,7 +852,7 @@ void EditorFileDialog::update_file_list() {
 	fav_down->set_disabled(true);
 	get_ok()->set_disabled(_is_open_should_be_disabled());
 	for (int i = 0; i < favorites->get_item_count(); i++) {
-		if (favorites->get_item_metadata(i) == cdir) {
+		if (favorites->get_item_metadata(i) == cdir || favorites->get_item_metadata(i) == cdir + "/") {
 			favorites->select(i);
 			favorite->set_pressed(true);
 			if (i > 0) {
@@ -1206,8 +1205,10 @@ void EditorFileDialog::_update_favorites() {
 			if (name == current)
 				setthis = true;
 			name = "/";
+
+			favorites->add_item(name, folder_icon);
 		} else if (name.ends_with("/")) {
-			if (name == current)
+			if (name == current || name == current + "/")
 				setthis = true;
 			name = name.substr(0, name.length() - 1);
 			name = name.get_file();
@@ -1230,6 +1231,8 @@ void EditorFileDialog::_favorite_toggled(bool p_toggle) {
 	bool res = access == ACCESS_RESOURCES;
 
 	String cd = get_current_dir();
+	if (!cd.ends_with("/"))
+		cd += "/";
 
 	Vector<String> favorited = EditorSettings::get_singleton()->get_favorites();
 
@@ -1245,13 +1248,10 @@ void EditorFileDialog::_favorite_toggled(bool p_toggle) {
 		}
 	}
 
-	if (found) {
+	if (found)
 		favorited.erase(cd);
-		favorite->set_pressed(false);
-	} else {
+	else
 		favorited.push_back(cd);
-		favorite->set_pressed(true);
-	}
 
 	EditorSettings::get_singleton()->set_favorites(favorited);
 
@@ -1495,7 +1495,9 @@ EditorFileDialog::EditorFileDialog() {
 	HBoxContainer *pathhb = memnew(HBoxContainer);
 
 	dir_prev = memnew(ToolButton);
+	dir_prev->set_tooltip(TTR("Previous Folder"));
 	dir_next = memnew(ToolButton);
+	dir_next->set_tooltip(TTR("Next Folder"));
 	dir_up = memnew(ToolButton);
 	dir_up->set_tooltip(TTR("Go to parent folder"));
 
@@ -1514,12 +1516,14 @@ EditorFileDialog::EditorFileDialog() {
 	dir->set_h_size_flags(SIZE_EXPAND_FILL);
 
 	refresh = memnew(ToolButton);
+	refresh->set_tooltip(TTR("Refresh"));
 	refresh->connect("pressed", this, "_update_file_list");
 	pathhb->add_child(refresh);
 
 	favorite = memnew(ToolButton);
 	favorite->set_flat(true);
 	favorite->set_toggle_mode(true);
+	favorite->set_tooltip(TTR("(Un)favorite current folder."));
 	favorite->connect("toggled", this, "_favorite_toggled");
 	pathhb->add_child(favorite);
 
@@ -1533,6 +1537,7 @@ EditorFileDialog::EditorFileDialog() {
 	mode_thumbnails->set_toggle_mode(true);
 	mode_thumbnails->set_pressed(display_mode == DISPLAY_THUMBNAILS);
 	mode_thumbnails->set_button_group(view_mode_group);
+	mode_thumbnails->set_tooltip(TTR("View items as a grid of thumbnails."));
 	pathhb->add_child(mode_thumbnails);
 
 	mode_list = memnew(ToolButton);
@@ -1540,6 +1545,7 @@ EditorFileDialog::EditorFileDialog() {
 	mode_list->set_toggle_mode(true);
 	mode_list->set_pressed(display_mode == DISPLAY_LIST);
 	mode_list->set_button_group(view_mode_group);
+	mode_list->set_tooltip(TTR("View items as a list."));
 	pathhb->add_child(mode_list);
 
 	drives = memnew(OptionButton);

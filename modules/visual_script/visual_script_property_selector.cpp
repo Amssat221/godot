@@ -421,7 +421,7 @@ void VisualScriptPropertySelector::get_visual_node_names(const String &root_filt
 		}
 
 		Vector<String> desc = path[path.size() - 1].replace("(", "( ").replace(")", " )").replace(",", ", ").split(" ");
-		for (size_t i = 0; i < desc.size(); i++) {
+		for (int i = 0; i < desc.size(); i++) {
 			desc.write[i] = desc[i].capitalize();
 			if (desc[i].ends_with(",")) {
 				desc.write[i] = desc[i].replace(",", ", ");
@@ -514,26 +514,26 @@ void VisualScriptPropertySelector::_item_selected() {
 	if (names->find(name) != NULL) {
 		Ref<VisualScriptOperator> operator_node = VisualScriptLanguage::singleton->create_node_from_name(name);
 		if (operator_node.is_valid()) {
-			Map<String, DocData::ClassDoc>::Element *E = dd->class_list.find(operator_node->get_class_name());
-			if (E) {
+			Map<String, DocData::ClassDoc>::Element *F = dd->class_list.find(operator_node->get_class_name());
+			if (F) {
 				text = Variant::get_operator_name(operator_node->get_operator());
 			}
 		}
 		Ref<VisualScriptTypeCast> typecast_node = VisualScriptLanguage::singleton->create_node_from_name(name);
 		if (typecast_node.is_valid()) {
-			Map<String, DocData::ClassDoc>::Element *E = dd->class_list.find(typecast_node->get_class_name());
-			if (E) {
-				text = E->get().description;
+			Map<String, DocData::ClassDoc>::Element *F = dd->class_list.find(typecast_node->get_class_name());
+			if (F) {
+				text = F->get().description;
 			}
 		}
 
 		Ref<VisualScriptBuiltinFunc> builtin_node = VisualScriptLanguage::singleton->create_node_from_name(name);
 		if (builtin_node.is_valid()) {
-			Map<String, DocData::ClassDoc>::Element *E = dd->class_list.find(builtin_node->get_class_name());
-			if (E) {
-				for (int i = 0; i < E->get().constants.size(); i++) {
-					if (E->get().constants[i].value.to_int() == int(builtin_node->get_func())) {
-						text = E->get().constants[i].description;
+			Map<String, DocData::ClassDoc>::Element *F = dd->class_list.find(builtin_node->get_class_name());
+			if (F) {
+				for (int i = 0; i < F->get().constants.size(); i++) {
+					if (F->get().constants[i].value.to_int() == int(builtin_node->get_func())) {
+						text = F->get().constants[i].description;
 					}
 				}
 			}

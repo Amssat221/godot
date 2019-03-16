@@ -204,7 +204,9 @@ public:
 		bool cull_disabled;
 		bool used_sss;
 		bool used_screen_texture;
-		bool using_contact_shadows;
+
+		bool used_depth_prepass;
+		bool used_depth_prepass_and_resolved;
 
 		VS::ViewportDebugDraw debug_draw;
 	} state;

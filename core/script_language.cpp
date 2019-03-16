@@ -37,6 +37,7 @@ int ScriptServer::_language_count = 0;
 
 bool ScriptServer::scripting_enabled = true;
 bool ScriptServer::reload_scripts_on_save = false;
+bool ScriptServer::languages_finished = false;
 ScriptEditRequestFunction ScriptServer::edit_request_func = NULL;
 
 void Script::_notification(int p_what) {
@@ -130,6 +131,7 @@ void ScriptServer::finish_languages() {
 		_languages[i]->finish();
 	}
 	global_classes_clear();
+	languages_finished = true;
 }
 
 void ScriptServer::set_reload_scripts_on_save(bool p_enable) {
@@ -187,6 +189,14 @@ String ScriptServer::get_global_class_path(const String &p_class) {
 StringName ScriptServer::get_global_class_base(const String &p_class) {
 	ERR_FAIL_COND_V(!global_classes.has(p_class), String());
 	return global_classes[p_class].base;
+}
+StringName ScriptServer::get_global_class_native_base(const String &p_class) {
+	ERR_FAIL_COND_V(!global_classes.has(p_class), String());
+	String base = global_classes[p_class].base;
+	while (global_classes.has(base)) {
+		base = global_classes[base].base;
+	}
+	return base;
 }
 void ScriptServer::get_global_class_list(List<StringName> *r_global_classes) {
 	const StringName *K = NULL;
@@ -407,6 +417,11 @@ bool PlaceHolderScriptInstance::get(const StringName &p_name, Variant &r_ret) co
 		return true;
 	}
 
+	if (constants.has(p_name)) {
+		r_ret = constants[p_name];
+		return true;
+	}
+
 	if (!script->is_placeholder_fallback_enabled()) {
 		Variant defval;
 		if (script->get_property_default_value(p_name, defval)) {
@@ -442,6 +457,13 @@ Variant::Type PlaceHolderScriptInstance::get_property_type(const StringName &p_n
 			*r_is_valid = true;
 		return values[p_name].get_type();
 	}
+
+	if (constants.has(p_name)) {
+		if (r_is_valid)
+			*r_is_valid = true;
+		return constants[p_name].get_type();
+	}
+
 	if (r_is_valid)
 		*r_is_valid = false;
 
@@ -511,6 +533,9 @@ void PlaceHolderScriptInstance::update(const List<PropertyInfo> &p_properties, c
 		owner->_change_notify();
 	}
 	//change notify
+
+	constants.clear();
+	script->get_constants(&constants);
 }
 
 void PlaceHolderScriptInstance::property_set_fallback(const StringName &p_name, const Variant &p_value, bool *r_valid) {
@@ -525,8 +550,8 @@ void PlaceHolderScriptInstance::property_set_fallback(const StringName &p_name, 
 		}
 
 		bool found = false;
-		for (const List<PropertyInfo>::Element *E = properties.front(); E; E = E->next()) {
-			if (E->get().name == p_name) {
+		for (const List<PropertyInfo>::Element *F = properties.front(); F; F = F->next()) {
+			if (F->get().name == p_name) {
 				found = true;
 				break;
 			}
@@ -545,6 +570,13 @@ Variant PlaceHolderScriptInstance::property_get_fallback(const StringName &p_nam
 	if (script->is_placeholder_fallback_enabled()) {
 		const Map<StringName, Variant>::Element *E = values.find(p_name);
 
+		if (E) {
+			if (r_valid)
+				*r_valid = true;
+			return E->value();
+		}
+
+		E = constants.find(p_name);
 		if (E) {
 			if (r_valid)
 				*r_valid = true;

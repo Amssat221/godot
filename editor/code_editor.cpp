@@ -1042,35 +1042,43 @@ void CodeTextEditor::delete_lines() {
 }
 
 void CodeTextEditor::clone_lines_down() {
+	const int cursor_column = text_editor->cursor_get_column();
 	int from_line = text_editor->cursor_get_line();
 	int to_line = text_editor->cursor_get_line();
-	int column = text_editor->cursor_get_column();
+	int from_column = 0;
+	int to_column = 0;
+	int cursor_new_line = to_line + 1;
+	int cursor_new_column = text_editor->cursor_get_column();
+	String new_text = "\n" + text_editor->get_line(from_line);
+	bool selection_active = false;
 
+	text_editor->cursor_set_column(text_editor->get_line(from_line).length());
 	if (text_editor->is_selection_active()) {
+		from_column = text_editor->get_selection_from_column();
+		to_column = text_editor->get_selection_to_column();
+
 		from_line = text_editor->get_selection_from_line();
 		to_line = text_editor->get_selection_to_line();
-		column = text_editor->cursor_get_column();
-	}
-	int next_line = to_line + 1;
+		cursor_new_line = to_line + text_editor->cursor_get_line() - from_line;
+		cursor_new_column = to_column == cursor_column ? 2 * to_column - from_column : to_column;
+		new_text = text_editor->get_selection_text();
+		selection_active = true;
 
-	bool caret_at_start = text_editor->cursor_get_line() == from_line;
+		text_editor->cursor_set_line(to_line);
+		text_editor->cursor_set_column(to_column);
+	}
+
 	text_editor->begin_complex_operation();
+
 	for (int i = from_line; i <= to_line; i++) {
 		text_editor->unfold_line(i);
-		text_editor->set_line(next_line - 1, text_editor->get_line(next_line - 1) + "\n");
-		text_editor->set_line(next_line, text_editor->get_line(i));
-		next_line++;
 	}
-
-	if (caret_at_start) {
-		text_editor->cursor_set_line(to_line + 1);
-	} else {
-		text_editor->cursor_set_line(next_line - 1);
-	}
-
-	text_editor->cursor_set_column(column);
-	if (text_editor->is_selection_active()) {
-		text_editor->select(to_line + 1, text_editor->get_selection_from_column(), next_line - 1, text_editor->get_selection_to_column());
+	text_editor->deselect();
+	text_editor->insert_text_at_cursor(new_text);
+	text_editor->cursor_set_line(cursor_new_line);
+	text_editor->cursor_set_column(cursor_new_column);
+	if (selection_active) {
+		text_editor->select(to_line, to_column, 2 * to_line - from_line, 2 * to_column - from_column);
 	}
 
 	text_editor->end_complex_operation();
@@ -1136,6 +1144,7 @@ void CodeTextEditor::_update_font() {
 	text_editor->add_font_override("font", get_font("source", "EditorFonts"));
 
 	Ref<Font> status_bar_font = get_font("status_source", "EditorFonts");
+	error->add_font_override("font", status_bar_font);
 	int count = status_bar->get_child_count();
 	for (int i = 0; i < count; i++) {
 		Control *n = Object::cast_to<Control>(status_bar->get_child(i));
@@ -1177,7 +1186,12 @@ void CodeTextEditor::_warning_label_gui_input(const Ref<InputEvent> &p_event) {
 }
 
 void CodeTextEditor::_warning_button_pressed() {
-	emit_signal("warning_pressed");
+	_set_show_warnings_panel(!is_warnings_panel_opened);
+}
+
+void CodeTextEditor::_set_show_warnings_panel(bool p_show) {
+	is_warnings_panel_opened = p_show;
+	emit_signal("show_warnings_panel", p_show);
 }
 
 void CodeTextEditor::_error_pressed(const Ref<InputEvent> &p_event) {
@@ -1210,6 +1224,8 @@ void CodeTextEditor::set_warning_nb(int p_warning_nb) {
 	warning_count_label->set_text(itos(p_warning_nb));
 	warning_count_label->set_visible(p_warning_nb > 0);
 	warning_button->set_visible(p_warning_nb > 0);
+	if (!p_warning_nb)
+		_set_show_warnings_panel(false);
 }
 
 void CodeTextEditor::_bind_methods() {
@@ -1228,7 +1244,7 @@ void CodeTextEditor::_bind_methods() {
 
 	ADD_SIGNAL(MethodInfo("validate_script"));
 	ADD_SIGNAL(MethodInfo("load_theme_settings"));
-	ADD_SIGNAL(MethodInfo("warning_pressed"));
+	ADD_SIGNAL(MethodInfo("show_warnings_panel"));
 	ADD_SIGNAL(MethodInfo("error_pressed"));
 }
 
@@ -1313,6 +1329,7 @@ CodeTextEditor::CodeTextEditor() {
 	warning_count_label->add_font_override("font", EditorNode::get_singleton()->get_gui_base()->get_font("status_source", "EditorFonts"));
 	warning_count_label->connect("gui_input", this, "_warning_label_gui_input");
 
+	is_warnings_panel_opened = false;
 	set_warning_nb(0);
 
 	// Line and column
