@@ -460,7 +460,7 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	restart_close_button->connect("pressed", this, "_editor_restart_close");
 	restart_hb->add_child(restart_close_button);
 	restart_container->hide();
-
+	
 	// Shortcuts Tab
 
 	tab_shortcuts = memnew(VBoxContainer);
@@ -508,11 +508,11 @@ EditorSettingsDialog::EditorSettingsDialog() {
 
 	timer = memnew(Timer);
 	timer->set_wait_time(1.5);
-	timer->connect("timeout", this, "_settings_save");
+	timer->connect("timeout", EditorSettings::get_singleton(), "_settings_save");
 	timer->set_one_shot(true);
 	add_child(timer);
-	EditorSettings::get_singleton()->connect("settings_changed", this, "_settings_changed");
-	get_ok()->set_text(TTR("Close"));
+	//EditorSettings::get_singleton()->connect("settings_changed", this, "_settings_changed");
+	//get_ok()->set_text(TTR("Close"));
 
 	updating = false;
 }
