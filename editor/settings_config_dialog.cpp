@@ -508,11 +508,11 @@ EditorSettingsDialog::EditorSettingsDialog() {
 
 	timer = memnew(Timer);
 	timer->set_wait_time(1.5);
-	timer->connect("timeout", this, "_settings_save");
+	timer->connect("timeout", EditorSettings::get_singleton(), "_settings_save");
 	timer->set_one_shot(true);
 	add_child(timer);
-	EditorSettings::get_singleton()->connect("settings_changed", this, "_settings_changed");
-	get_ok()->set_text(TTR("Close"));
+	//EditorSettings::get_singleton()->connect("settings_changed", this, "_settings_changed");
+	//get_ok()->set_text(TTR("Close"));
 
 	updating = false;
 }
