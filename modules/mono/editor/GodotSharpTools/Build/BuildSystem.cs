@@ -18,11 +18,11 @@ namespace GodotSharpTools.Build
         [MethodImpl(MethodImplOptions.InternalCall)]
         private extern static string godot_icall_BuildInstance_get_MSBuildPath();
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private extern static string godot_icall_BuildInstance_get_FrameworkPath();
-        [MethodImpl(MethodImplOptions.InternalCall)]
         private extern static string godot_icall_BuildInstance_get_MonoWindowsBinDir();
         [MethodImpl(MethodImplOptions.InternalCall)]
         private extern static bool godot_icall_BuildInstance_get_UsingMonoMSBuildOnWindows();
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern static bool godot_icall_BuildInstance_get_PrintBuildOutput();
 
         private static string GetMSBuildPath()
         {
@@ -32,11 +32,6 @@ namespace GodotSharpTools.Build
                 throw new FileNotFoundException("Cannot find the MSBuild executable.");
 
             return msbuildPath;
-        }
-
-        private static string GetFrameworkPath()
-        {
-            return godot_icall_BuildInstance_get_FrameworkPath();
         }
 
         private static string MonoWindowsBinDir
@@ -60,6 +55,14 @@ namespace GodotSharpTools.Build
             }
         }
 
+        private static bool PrintBuildOutput
+        {
+            get
+            {
+                return godot_icall_BuildInstance_get_PrintBuildOutput();
+            }
+        }
+
         private string solution;
         private string config;
 
@@ -78,23 +81,19 @@ namespace GodotSharpTools.Build
 
         public bool Build(string loggerAssemblyPath, string loggerOutputDir, string[] customProperties = null)
         {
-            bool debugMSBuild = IsDebugMSBuildRequested();
-
             List<string> customPropertiesList = new List<string>();
 
             if (customProperties != null)
                 customPropertiesList.AddRange(customProperties);
 
-            string frameworkPath = GetFrameworkPath();
-
-            if (!string.IsNullOrEmpty(frameworkPath))
-                customPropertiesList.Add("FrameworkPathOverride=" + frameworkPath);
-
             string compilerArgs = BuildArguments(loggerAssemblyPath, loggerOutputDir, customPropertiesList);
 
             ProcessStartInfo startInfo = new ProcessStartInfo(GetMSBuildPath(), compilerArgs);
 
-            bool redirectOutput = !debugMSBuild;
+            bool redirectOutput = !IsDebugMSBuildRequested() && !PrintBuildOutput;
+
+            if (!redirectOutput) // TODO: or if stdout verbose
+                Console.WriteLine($"Running: \"{startInfo.FileName}\" {startInfo.Arguments}");
 
             startInfo.RedirectStandardOutput = redirectOutput;
             startInfo.RedirectStandardError = redirectOutput;
@@ -135,8 +134,6 @@ namespace GodotSharpTools.Build
 
         public bool BuildAsync(string loggerAssemblyPath, string loggerOutputDir, string[] customProperties = null)
         {
-            bool debugMSBuild = IsDebugMSBuildRequested();
-
             if (process != null)
                 throw new InvalidOperationException("Already in use");
 
@@ -145,16 +142,14 @@ namespace GodotSharpTools.Build
             if (customProperties != null)
                 customPropertiesList.AddRange(customProperties);
 
-            string frameworkPath = GetFrameworkPath();
-
-            if (!string.IsNullOrEmpty(frameworkPath))
-                customPropertiesList.Add("FrameworkPathOverride=" + frameworkPath);
-
             string compilerArgs = BuildArguments(loggerAssemblyPath, loggerOutputDir, customPropertiesList);
 
             ProcessStartInfo startInfo = new ProcessStartInfo(GetMSBuildPath(), compilerArgs);
 
-            bool redirectOutput = !debugMSBuild;
+            bool redirectOutput = !IsDebugMSBuildRequested() && !PrintBuildOutput;
+
+            if (!redirectOutput) // TODO: or if stdout verbose
+                Console.WriteLine($"Running: \"{startInfo.FileName}\" {startInfo.Arguments}");
 
             startInfo.RedirectStandardOutput = redirectOutput;
             startInfo.RedirectStandardError = redirectOutput;

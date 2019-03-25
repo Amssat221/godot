@@ -31,7 +31,7 @@
 #ifndef RESOURCEIMPORTWAV_H
 #define RESOURCEIMPORTWAV_H
 
-#include "core/io/resource_import.h"
+#include "core/io/resource_importer.h"
 
 class ResourceImporterWAV : public ResourceImporter {
 	GDCLASS(ResourceImporterWAV, ResourceImporter)
@@ -161,7 +161,7 @@ public:
 		}
 	}
 
-	virtual Error import(const String &p_source_file, const String &p_save_path, const Map<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files = NULL);
+	virtual Error import(const String &p_source_file, const String &p_save_path, const Map<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files = NULL, Variant *r_metadata = NULL);
 
 	ResourceImporterWAV();
 };

@@ -31,12 +31,12 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
-#include "core/dvector.h"
 #include "core/math/face3.h"
 #include "core/math/rect2.h"
 #include "core/math/triangulate.h"
 #include "core/math/vector3.h"
 #include "core/object.h"
+#include "core/pool_vector.h"
 #include "core/print_string.h"
 #include "core/vector.h"
 
@@ -949,6 +949,8 @@ public:
 		H.resize(k);
 		return H;
 	}
+
+	static Vector<Vector<Vector2> > decompose_polygon_in_convex(Vector<Point2> polygon);
 
 	static MeshData build_convex_mesh(const PoolVector<Plane> &p_planes);
 	static PoolVector<Plane> build_sphere_planes(real_t p_radius, int p_lats, int p_lons, Vector3::Axis p_axis = Vector3::AXIS_Z);

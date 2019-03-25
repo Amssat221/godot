@@ -500,11 +500,6 @@ public class GodotIO {
 		return (int)(metrics.density * 160f);
 	}
 
-	public boolean needsReloadHooks() {
-
-		return false;
-	}
-
 	public void showKeyboard(String p_existing_text) {
 		if (edit != null)
 			edit.showKeyboard(p_existing_text);
@@ -516,14 +511,6 @@ public class GodotIO {
 	public void hideKeyboard() {
 		if (edit != null)
 			edit.hideKeyboard();
-
-		InputMethodManager inputMgr = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-		View v = activity.getCurrentFocus();
-		if (v != null) {
-			inputMgr.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-		} else {
-			inputMgr.hideSoftInputFromWindow(new View(activity).getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-		}
 	};
 
 	public void setScreenOrientation(int p_orientation) {

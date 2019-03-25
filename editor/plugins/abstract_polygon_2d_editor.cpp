@@ -201,6 +201,8 @@ void AbstractPolygon2DEditor::_notification(int p_what) {
 
 		case NOTIFICATION_READY: {
 
+			disable_polygon_editing(false, String());
+
 			button_create->set_icon(EditorNode::get_singleton()->get_gui_base()->get_icon("CurveCreate", "EditorIcons"));
 			button_edit->set_icon(EditorNode::get_singleton()->get_gui_base()->get_icon("CurveEdit", "EditorIcons"));
 			button_delete->set_icon(EditorNode::get_singleton()->get_gui_base()->get_icon("CurveDelete", "EditorIcons"));
@@ -275,9 +277,30 @@ void AbstractPolygon2DEditor::_wip_close() {
 	selected_point = Vertex();
 }
 
+void AbstractPolygon2DEditor::disable_polygon_editing(bool p_disable, String p_reason) {
+
+	_polygon_editing_enabled = !p_disable;
+
+	button_create->set_disabled(p_disable);
+	button_edit->set_disabled(p_disable);
+	button_delete->set_disabled(p_disable);
+
+	if (p_disable) {
+
+		button_create->set_tooltip(p_reason);
+		button_edit->set_tooltip(p_reason);
+		button_delete->set_tooltip(p_reason);
+	} else {
+
+		button_create->set_tooltip(TTR("Create points."));
+		button_edit->set_tooltip(TTR("Edit points.\nLMB: Move Point\nRMB: Erase Point"));
+		button_delete->set_tooltip(TTR("Erase points."));
+	}
+}
+
 bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) {
 
-	if (!_get_node())
+	if (!_get_node() || !_polygon_editing_enabled)
 		return false;
 
 	Ref<InputEventMouseButton> mb = p_event;
@@ -324,16 +347,16 @@ bool AbstractPolygon2DEditor::forward_gui_input(const Ref<InputEvent> &p_event) 
 							return true;
 						} else {
 
-							Vector<Vector2> vertices = _get_polygon(insert.polygon);
-							pre_move_edit = vertices;
+							Vector<Vector2> vertices2 = _get_polygon(insert.polygon);
+							pre_move_edit = vertices2;
 							printf("setting pre_move_edit\n");
 							edited_point = PosVertex(insert.polygon, insert.vertex + 1, xform.affine_inverse().xform(insert.pos));
-							vertices.insert(edited_point.vertex, edited_point.pos);
+							vertices2.insert(edited_point.vertex, edited_point.pos);
 							selected_point = edited_point;
 							edge_point = PosVertex();
 
 							undo_redo->create_action(TTR("Insert Point"));
-							_action_set_polygon(insert.polygon, vertices);
+							_action_set_polygon(insert.polygon, vertices2);
 							_commit_action();
 							return true;
 						}
@@ -627,9 +650,8 @@ void AbstractPolygon2DEditor::forward_canvas_draw_over_viewport(Control *p_overl
 
 void AbstractPolygon2DEditor::edit(Node *p_polygon) {
 
-	if (!canvas_item_editor) {
+	if (!canvas_item_editor)
 		canvas_item_editor = CanvasItemEditor::get_singleton();
-	}
 
 	if (p_polygon) {
 
@@ -648,7 +670,6 @@ void AbstractPolygon2DEditor::edit(Node *p_polygon) {
 		selected_point = Vertex();
 
 		canvas_item_editor->update_viewport();
-
 	} else {
 
 		_set_node(NULL);
@@ -783,19 +804,16 @@ AbstractPolygon2DEditor::AbstractPolygon2DEditor(EditorNode *p_editor, bool p_wi
 	add_child(button_create);
 	button_create->connect("pressed", this, "_menu_option", varray(MODE_CREATE));
 	button_create->set_toggle_mode(true);
-	button_create->set_tooltip(TTR("Create points."));
 
 	button_edit = memnew(ToolButton);
 	add_child(button_edit);
 	button_edit->connect("pressed", this, "_menu_option", varray(MODE_EDIT));
 	button_edit->set_toggle_mode(true);
-	button_edit->set_tooltip(TTR("Edit points.\nLMB: Move Point\nRMB: Erase Point"));
 
 	button_delete = memnew(ToolButton);
 	add_child(button_delete);
 	button_delete->connect("pressed", this, "_menu_option", varray(MODE_DELETE));
 	button_delete->set_toggle_mode(true);
-	button_delete->set_tooltip(TTR("Erase points."));
 
 	create_resource = memnew(ConfirmationDialog);
 	add_child(create_resource);

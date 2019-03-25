@@ -243,8 +243,37 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 // maybe contextgl wants to be in charge of creating the window
 #if defined(OPENGL_ENABLED)
 	if (getenv("DRI_PRIME") == NULL) {
-		print_verbose("Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.");
-		int use_prime = detect_prime();
+		int use_prime = -1;
+
+		if (getenv("PRIMUS_DISPLAY") ||
+				getenv("PRIMUS_libGLd") ||
+				getenv("PRIMUS_libGLa") ||
+				getenv("PRIMUS_libGL") ||
+				getenv("PRIMUS_LOAD_GLOBAL") ||
+				getenv("BUMBLEBEE_SOCKET")) {
+
+			print_verbose("Optirun/primusrun detected. Skipping GPU detection");
+			use_prime = 0;
+		}
+
+		if (getenv("LD_LIBRARY_PATH")) {
+			String ld_library_path(getenv("LD_LIBRARY_PATH"));
+			Vector<String> libraries = ld_library_path.split(":");
+
+			for (int i = 0; i < libraries.size(); ++i) {
+				if (FileAccess::exists(libraries[i] + "/libGL.so.1") ||
+						FileAccess::exists(libraries[i] + "/libGL.so")) {
+
+					print_verbose("Custom libGL override detected. Skipping GPU detection");
+					use_prime = 0;
+				}
+			}
+		}
+
+		if (use_prime == -1) {
+			print_verbose("Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.");
+			use_prime = detect_prime();
+		}
 
 		if (use_prime) {
 			print_line("Found discrete GPU, setting DRI_PRIME=1 to use it.");
@@ -270,7 +299,7 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 			memdelete(context_gl);
 			context_gl = NULL;
 
-			if (GLOBAL_GET("rendering/quality/driver/driver_fallback") == "Best" || editor) {
+			if (GLOBAL_GET("rendering/quality/driver/fallback_to_gles2") || editor) {
 				if (p_video_driver == VIDEO_DRIVER_GLES2) {
 					gl_initialization_error = true;
 					break;
@@ -292,7 +321,7 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 				RasterizerGLES3::make_current();
 				break;
 			} else {
-				if (GLOBAL_GET("rendering/quality/driver/driver_fallback") == "Best" || editor) {
+				if (GLOBAL_GET("rendering/quality/driver/fallback_to_gles2") || editor) {
 					p_video_driver = VIDEO_DRIVER_GLES2;
 					opengl_api_type = ContextGL_X11::GLES_2_0_COMPATIBLE;
 					continue;
@@ -1631,7 +1660,7 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 					k->set_shift(true);
 				}
 
-				input->parse_input_event(k);
+				input->accumulate_input_event(k);
 			}
 			return;
 		}
@@ -1714,7 +1743,7 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 			// is correct, but the xorg developers are
 			// not very helpful today.
 
-			::Time tresh = ABS(peek_event.xkey.time - xkeyevent->time);
+			::Time tresh = ABSDIFF(peek_event.xkey.time, xkeyevent->time);
 			if (peek_event.type == KeyPress && tresh < 5) {
 				KeySym rk;
 				XLookupString((XKeyEvent *)&peek_event, str, 256, &rk, NULL);
@@ -1775,7 +1804,7 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 	}
 
 	//printf("key: %x\n",k->get_scancode());
-	input->parse_input_event(k);
+	input->accumulate_input_event(k);
 }
 
 struct Property {
@@ -1962,12 +1991,12 @@ void OS_X11::process_xevents() {
 								// in a spurious mouse motion event being sent to Godot; remember it to be able to filter it out
 								xi.mouse_pos_to_filter = pos;
 							}
-							input->parse_input_event(st);
+							input->accumulate_input_event(st);
 						} else {
 							if (!xi.state.has(index)) // Defensive
 								break;
 							xi.state.erase(index);
-							input->parse_input_event(st);
+							input->accumulate_input_event(st);
 						}
 					} break;
 
@@ -1985,7 +2014,7 @@ void OS_X11::process_xevents() {
 							sd->set_index(index);
 							sd->set_position(pos);
 							sd->set_relative(pos - curr_pos_elem->value());
-							input->parse_input_event(sd);
+							input->accumulate_input_event(sd);
 
 							curr_pos_elem->value() = pos;
 						}
@@ -2073,7 +2102,7 @@ void OS_X11::process_xevents() {
 					st.instance();
 					st->set_index(E->key());
 					st->set_position(E->get());
-					input->parse_input_event(st);
+					input->accumulate_input_event(st);
 				}
 				xi.state.clear();
 #endif
@@ -2134,7 +2163,7 @@ void OS_X11::process_xevents() {
 					}
 				}
 
-				input->parse_input_event(mb);
+				input->accumulate_input_event(mb);
 
 			} break;
 			case MotionNotify: {
@@ -2244,7 +2273,7 @@ void OS_X11::process_xevents() {
 				// this is so that the relative motion doesn't get messed up
 				// after we regain focus.
 				if (window_has_focus || !mouse_mode_grab)
-					input->parse_input_event(mm);
+					input->accumulate_input_event(mm);
 
 			} break;
 			case KeyPress:
@@ -2326,7 +2355,7 @@ void OS_X11::process_xevents() {
 
 					Vector<String> files = String((char *)p.data).split("\n", false);
 					for (int i = 0; i < files.size(); i++) {
-						files.write[i] = files[i].replace("file://", "").replace("%20", " ").strip_escapes();
+						files.write[i] = files[i].replace("file://", "").http_unescape().strip_escapes();
 					}
 					main_loop->drop_files(files);
 
@@ -2428,6 +2457,8 @@ void OS_X11::process_xevents() {
 		printf("Win: %d,%d\n", win_x, win_y);
 		*/
 	}
+
+	input->flush_accumulated_events();
 }
 
 MainLoop *OS_X11::get_main_loop() const {
@@ -2564,7 +2595,7 @@ Error OS_X11::shell_open(String p_uri) {
 
 bool OS_X11::_check_internal_feature_support(const String &p_feature) {
 
-	return p_feature == "pc" || p_feature == "s3tc" || p_feature == "bptc";
+	return p_feature == "pc";
 }
 
 String OS_X11::get_config_path() const {
@@ -3004,7 +3035,9 @@ bool OS_X11::is_vsync_enabled() const {
 */
 void OS_X11::set_context(int p_context) {
 
+	char *config_name = NULL;
 	XClassHint *classHint = XAllocClassHint();
+
 	if (classHint) {
 
 		char *wm_class = (char *)"Godot";
@@ -3015,13 +3048,21 @@ void OS_X11::set_context(int p_context) {
 
 		if (p_context == CONTEXT_ENGINE) {
 			classHint->res_name = (char *)"Godot_Engine";
-			wm_class = (char *)((String)GLOBAL_GET("application/config/name")).utf8().ptrw();
+			String config_name_tmp = GLOBAL_GET("application/config/name");
+			if (config_name_tmp.length() > 0) {
+				config_name = strdup(config_name_tmp.utf8().get_data());
+			} else {
+				config_name = strdup("Godot Engine");
+			}
+
+			wm_class = config_name;
 		}
 
 		classHint->res_class = wm_class;
 
 		XSetClassHint(x11_display, x11_window, classHint);
 		XFree(classHint);
+		free(config_name);
 	}
 }
 

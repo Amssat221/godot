@@ -53,11 +53,11 @@
 #include "drivers/register_driver_types.h"
 #include "main/app_icon.gen.h"
 #include "main/input_default.h"
+#include "main/main_timer_sync.h"
 #include "main/performance.h"
 #include "main/splash.gen.h"
 #include "main/splash_editor.gen.h"
 #include "main/tests/test_main.h"
-#include "main/timer_sync.h"
 #include "modules/register_module_types.h"
 #include "platform/register_platform_apis.h"
 #include "scene/main/scene_tree.h"
@@ -394,7 +394,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	Vector<String> breakpoints;
 	bool use_custom_res = true;
 	bool force_res = false;
+#ifdef TOOLS_ENABLED
 	bool found_project = false;
+#endif
 
 	packed_data = PackedData::get_singleton();
 	if (!packed_data)
@@ -746,14 +748,16 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	if (globals->setup(project_path, main_pack, upwards) == OK) {
+#ifdef TOOLS_ENABLED
 		found_project = true;
+#endif
 	} else {
 
 #ifdef TOOLS_ENABLED
 		editor = false;
 #else
 		String error_msg = "Error: Could not load game data at path '" + project_path + "'. Is the .pck file missing?\n";
-		OS::get_singleton()->print(error_msg.ascii().get_data());
+		OS::get_singleton()->print("%s", error_msg.ascii().get_data());
 		OS::get_singleton()->alert(error_msg);
 
 		goto error;
@@ -784,7 +788,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			memdelete(sdr);
 		} else {
 			script_debugger = sdr;
-			sdr->set_allow_focus_steal_pid(allow_focus_steal_pid);
 		}
 	} else if (debug_mode == "local") {
 
@@ -853,6 +856,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	if (editor || project_manager) {
+		Engine::get_singleton()->set_editor_hint(true);
 		use_custom_res = false;
 		input_map->load_default(); //keys for editor
 	} else {
@@ -877,8 +881,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		video_driver = GLOBAL_GET("rendering/quality/driver/driver_name");
 	}
 
-	GLOBAL_DEF("rendering/quality/driver/driver_fallback", "Best");
-	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/driver/driver_fallback", PropertyInfo(Variant::STRING, "rendering/quality/driver/driver_fallback", PROPERTY_HINT_ENUM, "Best,Never"));
+	GLOBAL_DEF("rendering/quality/driver/fallback_to_gles2", false);
 
 	// Assigning here even though it's GLES2-specific, to be sure that it appears in docs
 	GLOBAL_DEF("rendering/quality/2d/gles2_use_nvidia_rect_flicker_workaround", false);
@@ -922,13 +925,12 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		OS::get_singleton()->_allow_hidpi = GLOBAL_DEF("display/window/dpi/allow_hidpi", false);
 	}
 
-	OS::get_singleton()->_allow_layered = GLOBAL_DEF("display/window/allow_per_pixel_transparency", false);
-
 	video_mode.use_vsync = GLOBAL_DEF("display/window/vsync/use_vsync", true);
 	OS::get_singleton()->_use_vsync = video_mode.use_vsync;
 
-	video_mode.layered = GLOBAL_DEF("display/window/per_pixel_transparency", false);
-	video_mode.layered_splash = GLOBAL_DEF("display/window/per_pixel_transparency_splash", false);
+	OS::get_singleton()->_allow_layered = GLOBAL_DEF("display/window/per_pixel_transparency/allowed", false);
+	video_mode.layered = GLOBAL_DEF("display/window/per_pixel_transparency/enabled", false);
+	video_mode.layered_splash = GLOBAL_DEF("display/window/per_pixel_transparency/splash", false);
 
 	GLOBAL_DEF("rendering/quality/intended_usage/framebuffer_allocation", 2);
 	GLOBAL_DEF("rendering/quality/intended_usage/framebuffer_allocation.mobile", 3);
@@ -1126,6 +1128,10 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 		OS::get_singleton()->set_window_always_on_top(true);
 	}
 
+	if (allow_focus_steal_pid) {
+		OS::get_singleton()->enable_for_stealing_focus(allow_focus_steal_pid);
+	}
+
 	register_server_types();
 
 	MAIN_PRINT("Main: Load Remaps");
@@ -1144,8 +1150,8 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 		if (boot_logo_path != String()) {
 			boot_logo.instance();
-			Error err = ImageLoader::load_image(boot_logo_path, boot_logo);
-			if (err)
+			Error load_err = ImageLoader::load_image(boot_logo_path, boot_logo);
+			if (load_err)
 				ERR_PRINTS("Non-existing or invalid boot splash at: " + boot_logo_path + ". Loading default splash.");
 		}
 
@@ -1203,6 +1209,7 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 	GLOBAL_DEF("display/mouse_cursor/custom_image", String());
 	GLOBAL_DEF("display/mouse_cursor/custom_image_hotspot", Vector2());
+	GLOBAL_DEF("display/mouse_cursor/tooltip_position_offset", Point2(10, 10));
 	ProjectSettings::get_singleton()->set_custom_property_info("display/mouse_cursor/custom_image", PropertyInfo(Variant::STRING, "display/mouse_cursor/custom_image", PROPERTY_HINT_FILE, "*.png,*.webp"));
 
 	if (String(ProjectSettings::get_singleton()->get("display/mouse_cursor/custom_image")) != String()) {
@@ -1273,7 +1280,9 @@ bool Main::start() {
 	bool hasicon = false;
 	String doc_tool;
 	List<String> removal_docs;
+#ifdef TOOLS_ENABLED
 	bool doc_base = true;
+#endif
 	String game_path;
 	String script;
 	String test;
@@ -1286,9 +1295,11 @@ bool Main::start() {
 	List<String> args = OS::get_singleton()->get_cmdline_args();
 	for (int i = 0; i < args.size(); i++) {
 		//parameters that do not have an argument to the right
-		if (args[i] == "--no-docbase") {
-			doc_base = false;
+		if (args[i] == "--check-only") {
+			check_only = true;
 #ifdef TOOLS_ENABLED
+		} else if (args[i] == "--no-docbase") {
+			doc_base = false;
 		} else if (args[i] == "-e" || args[i] == "--editor") {
 			editor = true;
 		} else if (args[i] == "-p" || args[i] == "--project-manager") {
@@ -1296,8 +1307,6 @@ bool Main::start() {
 #endif
 		} else if (args[i].length() && args[i][0] != '-' && game_path == "") {
 			game_path = args[i];
-		} else if (args[i] == "--check-only") {
-			check_only = true;
 		}
 		//parameters that have an argument to the right
 		else if (i < (args.size() - 1)) {
@@ -1543,8 +1552,8 @@ bool Main::start() {
 						Ref<PackedScene> ps = res;
 						n = ps->instance();
 					} else if (res->is_class("Script")) {
-						Ref<Script> s = res;
-						StringName ibt = s->get_instance_base_type();
+						Ref<Script> script_res = res;
+						StringName ibt = script_res->get_instance_base_type();
 						bool valid_type = ClassDB::is_parent_class(ibt, "Node");
 						ERR_EXPLAIN("Script does not inherit a Node: " + path);
 						ERR_CONTINUE(!valid_type);
@@ -1555,7 +1564,7 @@ bool Main::start() {
 						ERR_CONTINUE(obj == NULL);
 
 						n = Object::cast_to<Node>(obj);
-						n->set_script(s.get_ref_ptr());
+						n->set_script(script_res.get_ref_ptr());
 					}
 
 					ERR_EXPLAIN("Path in autoload not a node or script: " + path);
@@ -1604,7 +1613,7 @@ bool Main::start() {
 			String stretch_mode = GLOBAL_DEF("display/window/stretch/mode", "disabled");
 			String stretch_aspect = GLOBAL_DEF("display/window/stretch/aspect", "ignore");
 			Size2i stretch_size = Size2(GLOBAL_DEF("display/window/size/width", 0), GLOBAL_DEF("display/window/size/height", 0));
-			real_t stretch_shrink = GLOBAL_DEF("display/window/stretch/shrink", 1.0f);
+			real_t stretch_shrink = GLOBAL_DEF("display/window/stretch/shrink", 1.0);
 
 			SceneTree::StretchMode sml_sm = SceneTree::STRETCH_MODE_DISABLED;
 			if (stretch_mode == "2d")
@@ -1656,8 +1665,8 @@ bool Main::start() {
 			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/mode", PropertyInfo(Variant::STRING, "display/window/stretch/mode", PROPERTY_HINT_ENUM, "disabled,2d,viewport"));
 			GLOBAL_DEF("display/window/stretch/aspect", "ignore");
 			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/aspect", PropertyInfo(Variant::STRING, "display/window/stretch/aspect", PROPERTY_HINT_ENUM, "ignore,keep,keep_width,keep_height,expand"));
-			GLOBAL_DEF("display/window/stretch/shrink", 1);
-			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/shrink", PropertyInfo(Variant::REAL, "display/window/stretch/shrink", PROPERTY_HINT_RANGE, "1,8,1"));
+			GLOBAL_DEF("display/window/stretch/shrink", 1.0);
+			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/shrink", PropertyInfo(Variant::REAL, "display/window/stretch/shrink", PROPERTY_HINT_RANGE, "1.0,8.0,0.1"));
 			sml->set_auto_accept_quit(GLOBAL_DEF("application/config/auto_accept_quit", true));
 			sml->set_quit_on_go_back(GLOBAL_DEF("application/config/quit_on_go_back", true));
 			GLOBAL_DEF("gui/common/snap_controls_to_pixels", true);

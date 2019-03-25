@@ -449,7 +449,7 @@ static String variant_type_to_managed_name(const String &p_var_type_name) {
 		Variant::_RID
 	};
 
-	for (int i = 0; i < sizeof(var_types) / sizeof(Variant::Type); i++) {
+	for (unsigned int i = 0; i < sizeof(var_types) / sizeof(Variant::Type); i++) {
 		if (p_var_type_name == Variant::get_type_name(var_types[i]))
 			return p_var_type_name;
 	}
@@ -497,6 +497,47 @@ String CSharpLanguage::_get_indentation() const {
 	}
 #endif
 	return "\t";
+}
+
+String CSharpLanguage::debug_get_error() const {
+
+	return _debug_error;
+}
+
+int CSharpLanguage::debug_get_stack_level_count() const {
+
+	if (_debug_parse_err_line >= 0)
+		return 1;
+
+	// TODO: StackTrace
+	return 1;
+}
+
+int CSharpLanguage::debug_get_stack_level_line(int p_level) const {
+
+	if (_debug_parse_err_line >= 0)
+		return _debug_parse_err_line;
+
+	// TODO: StackTrace
+	return 1;
+}
+
+String CSharpLanguage::debug_get_stack_level_function(int p_level) const {
+
+	if (_debug_parse_err_line >= 0)
+		return String();
+
+	// TODO: StackTrace
+	return String();
+}
+
+String CSharpLanguage::debug_get_stack_level_source(int p_level) const {
+
+	if (_debug_parse_err_line >= 0)
+		return _debug_parse_err_file;
+
+	// TODO: StackTrace
+	return String();
 }
 
 Vector<ScriptLanguage::StackInfo> CSharpLanguage::debug_get_current_stack_info() {
@@ -719,13 +760,13 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 		// Script::instances are deleted during managed object disposal, which happens on domain finalize.
 		// Only placeholders are kept. Therefore we need to keep a copy before that happens.
 
-		for (Set<Object *>::Element *E = script->instances.front(); E; E = E->next()) {
-			script->pending_reload_instances.insert(E->get()->get_instance_id());
+		for (Set<Object *>::Element *F = script->instances.front(); F; F = F->next()) {
+			script->pending_reload_instances.insert(F->get()->get_instance_id());
 		}
 
 #ifdef TOOLS_ENABLED
-		for (Set<PlaceHolderScriptInstance *>::Element *E = script->placeholders.front(); E; E = E->next()) {
-			script->pending_reload_instances.insert(E->get()->get_owner()->get_instance_id());
+		for (Set<PlaceHolderScriptInstance *>::Element *F = script->placeholders.front(); F; F = F->next()) {
+			script->pending_reload_instances.insert(F->get()->get_owner()->get_instance_id());
 		}
 #endif
 
@@ -958,12 +999,11 @@ void CSharpLanguage::thread_exit() {
 
 bool CSharpLanguage::debug_break_parse(const String &p_file, int p_line, const String &p_error) {
 
-	// Break because of parse error
+	// Not a parser error in our case, but it's still used for other type of errors
 	if (ScriptDebugger::get_singleton() && Thread::get_caller_id() == Thread::get_main_id()) {
-		// TODO
-		//_debug_parse_err_line = p_line;
-		//_debug_parse_err_file = p_file;
-		//_debug_error = p_error;
+		_debug_parse_err_line = p_line;
+		_debug_parse_err_file = p_file;
+		_debug_error = p_error;
 		ScriptDebugger::get_singleton()->debug(this, false);
 		return true;
 	} else {
@@ -974,14 +1014,20 @@ bool CSharpLanguage::debug_break_parse(const String &p_file, int p_line, const S
 bool CSharpLanguage::debug_break(const String &p_error, bool p_allow_continue) {
 
 	if (ScriptDebugger::get_singleton() && Thread::get_caller_id() == Thread::get_main_id()) {
-		// TODO
-		//_debug_parse_err_line = -1;
-		//_debug_parse_err_file = "";
-		//_debug_error = p_error;
+		_debug_parse_err_line = -1;
+		_debug_parse_err_file = "";
+		_debug_error = p_error;
 		ScriptDebugger::get_singleton()->debug(this, p_allow_continue);
 		return true;
 	} else {
 		return false;
+	}
+}
+
+void CSharpLanguage::_uninitialize_script_bindings() {
+	for (Map<Object *, CSharpScriptBinding>::Element *E = script_bindings.front(); E; E = E->next()) {
+		CSharpScriptBinding &script_binding = E->value();
+		script_binding.inited = false;
 	}
 }
 
@@ -1113,19 +1159,23 @@ bool CSharpLanguage::setup_csharp_script_binding(CSharpScriptBinding &r_script_b
 
 void *CSharpLanguage::alloc_instance_binding_data(Object *p_object) {
 
+	SCOPED_MUTEX_LOCK(language_bind_mutex);
+
+	Map<Object *, CSharpScriptBinding>::Element *match = script_bindings.find(p_object);
+	if (match)
+		return (void *)match;
+
 	CSharpScriptBinding script_binding;
 
 	if (!setup_csharp_script_binding(script_binding, p_object))
 		return NULL;
 
-	void *data;
+	return (void *)insert_script_binding(p_object, script_binding);
+}
 
-	{
-		SCOPED_MUTEX_LOCK(language_bind_mutex);
-		data = (void *)script_bindings.insert(p_object, script_binding);
-	}
+Map<Object *, CSharpScriptBinding>::Element *CSharpLanguage::insert_script_binding(Object *p_object, const CSharpScriptBinding &p_script_binding) {
 
-	return data;
+	return script_bindings.insert(p_object, p_script_binding);
 }
 
 void CSharpLanguage::free_instance_binding_data(void *p_data) {
@@ -1265,14 +1315,14 @@ bool CSharpInstance::set(const StringName &p_name, const Variant &p_value) {
 	GDMonoClass *top = script->script_class;
 
 	while (top && top != script->native) {
-		GDMonoField *field = script->script_class->get_field(p_name);
+		GDMonoField *field = top->get_field(p_name);
 
 		if (field) {
 			field->set_value_from_variant(mono_object, p_value);
 			return true;
 		}
 
-		GDMonoProperty *property = script->script_class->get_property(p_name);
+		GDMonoProperty *property = top->get_property(p_name);
 
 		if (property) {
 			property->set_value(mono_object, GDMonoMarshal::variant_to_mono_object(p_value, property->get_type()));
@@ -1524,6 +1574,15 @@ MonoObject *CSharpInstance::_internal_new_managed() {
 	CRASH_COND(!gchandle.is_valid());
 #endif
 
+	// Search the constructor first, to fail with an error if it's not found before allocating anything else.
+	GDMonoMethod *ctor = script->script_class->get_method(CACHED_STRING_NAME(dotctor), 0);
+	if (ctor == NULL) {
+		ERR_PRINTS("Cannot create script instance because the class does not define a default constructor: " + script->get_path());
+
+		ERR_EXPLAIN("Constructor not found");
+		ERR_FAIL_V(NULL);
+	}
+
 	CSharpLanguage::get_singleton()->release_script_gchandle(gchandle);
 
 	ERR_FAIL_NULL_V(owner, NULL);
@@ -1553,7 +1612,6 @@ MonoObject *CSharpInstance::_internal_new_managed() {
 	CACHED_FIELD(GodotObject, ptr)->set_value_raw(mono_object, owner);
 
 	// Construct
-	GDMonoMethod *ctor = script->script_class->get_method(CACHED_STRING_NAME(dotctor), 0);
 	ctor->invoke_raw(mono_object, NULL);
 
 	return mono_object;
@@ -1875,6 +1933,9 @@ void CSharpScript::_update_exports_values(Map<StringName, Variant> &values, List
 bool CSharpScript::_update_exports() {
 
 #ifdef TOOLS_ENABLED
+	if (!Engine::get_singleton()->is_editor_hint())
+		return false;
+
 	placeholder_fallback_enabled = true; // until proven otherwise
 
 	if (!valid)
@@ -1896,13 +1957,21 @@ bool CSharpScript::_update_exports() {
 		MonoObject *tmp_object = mono_object_new(SCRIPTS_DOMAIN, script_class->get_mono_ptr());
 
 		if (!tmp_object) {
-			ERR_PRINT("Failed to create temporary MonoObject");
+			ERR_PRINT("Failed to allocate temporary MonoObject");
 			return false;
 		}
 
 		uint32_t tmp_pinned_gchandle = MonoGCHandle::new_strong_handle_pinned(tmp_object); // pin it (not sure if needed)
 
 		GDMonoMethod *ctor = script_class->get_method(CACHED_STRING_NAME(dotctor), 0);
+
+		if (ctor == NULL) {
+			ERR_PRINTS("Cannot construct temporary MonoObject because the class does not define a default constructor: " + get_path());
+
+			ERR_EXPLAIN("Constructor not found");
+			ERR_FAIL_V(NULL);
+		}
+
 		MonoException *ctor_exc = NULL;
 		ctor->invoke(tmp_object, NULL, &ctor_exc);
 
@@ -2168,7 +2237,7 @@ bool CSharpScript::_get_member_export(GDMonoClass *p_class, IMonoClassMember *p_
 				return false;
 			}
 
-			if (val != i) {
+			if (val != (unsigned int)i) {
 				uses_default_values = false;
 			}
 
@@ -2183,8 +2252,11 @@ bool CSharpScript::_get_member_export(GDMonoClass *p_class, IMonoClassMember *p_
 			hint_string = name_only_hint_string;
 		}
 	} else if (variant_type == Variant::OBJECT && CACHED_CLASS(GodotReference)->is_assignable_from(type.type_class)) {
+		GDMonoClass *field_native_class = GDMonoUtils::get_class_native_base(type.type_class);
+		CRASH_COND(field_native_class == NULL);
+
 		hint = PROPERTY_HINT_RESOURCE_TYPE;
-		hint_string = NATIVE_GDMONOCLASS_NAME(type.type_class);
+		hint_string = NATIVE_GDMONOCLASS_NAME(field_native_class);
 	} else {
 		hint = PropertyHint(CACHED_FIELD(ExportAttribute, hint)->get_int_value(attr));
 		hint_string = CACHED_FIELD(ExportAttribute, hintString)->get_string_value(attr);
@@ -2279,17 +2351,18 @@ void CSharpScript::_bind_methods() {
 	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "new", &CSharpScript::_new, MethodInfo(Variant::OBJECT, "new"));
 }
 
-Ref<CSharpScript> CSharpScript::create_for_managed_type(GDMonoClass *p_class) {
+Ref<CSharpScript> CSharpScript::create_for_managed_type(GDMonoClass *p_class, GDMonoClass *p_native) {
 
 	// This method should not fail
 
 	CRASH_COND(!p_class);
 
+	// TODO: Cache the 'CSharpScript' associated with this 'p_class' instead of allocating a new one every time
 	Ref<CSharpScript> script = memnew(CSharpScript);
 
 	script->name = p_class->get_name();
 	script->script_class = p_class;
-	script->native = GDMonoUtils::get_class_native_base(script->script_class);
+	script->native = p_native;
 
 	CRASH_COND(script->native == NULL);
 
@@ -2382,6 +2455,18 @@ StringName CSharpScript::get_instance_base_type() const {
 CSharpInstance *CSharpScript::_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Variant::CallError &r_error) {
 
 	/* STEP 1, CREATE */
+
+	// Search the constructor first, to fail with an error if it's not found before allocating anything else.
+	GDMonoMethod *ctor = script_class->get_method(CACHED_STRING_NAME(dotctor), p_argcount);
+	if (ctor == NULL) {
+		if (p_argcount == 0) {
+			ERR_PRINTS("Cannot create script instance because the class does not define a default constructor: " + get_path());
+		}
+
+		ERR_EXPLAIN("Constructor not found");
+		ERR_FAIL_V(NULL);
+	}
+
 	Ref<Reference> ref;
 	if (p_isref) {
 		// Hold it alive. Important if we have to dispose a script instance binding before creating the CSharpInstance.
@@ -2448,7 +2533,6 @@ CSharpInstance *CSharpScript::_create_instance(const Variant **p_args, int p_arg
 	CACHED_FIELD(GodotObject, ptr)->set_value_raw(mono_object, instance->owner);
 
 	// Construct
-	GDMonoMethod *ctor = script_class->get_method(CACHED_STRING_NAME(dotctor), p_argcount);
 	ctor->invoke(mono_object, p_args);
 
 	/* STEP 3, PARTY */
@@ -2667,6 +2751,7 @@ Error CSharpScript::reload(bool p_keep_state) {
 			}
 
 			load_script_signals(script_class, native);
+			_update_exports();
 		}
 
 		return OK;

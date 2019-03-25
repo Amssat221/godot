@@ -54,6 +54,7 @@ class ScriptServer {
 	static int _language_count;
 	static bool scripting_enabled;
 	static bool reload_scripts_on_save;
+	static bool languages_finished;
 
 	struct GlobalScriptClass {
 		StringName language;
@@ -86,11 +87,14 @@ public:
 	static StringName get_global_class_language(const StringName &p_class);
 	static String get_global_class_path(const String &p_class);
 	static StringName get_global_class_base(const String &p_class);
+	static StringName get_global_class_native_base(const String &p_class);
 	static void get_global_class_list(List<StringName> *r_global_classes);
 	static void save_global_classes();
 
 	static void init_languages();
 	static void finish_languages();
+
+	static bool are_languages_finished() { return languages_finished; }
 };
 
 class ScriptInstance;
@@ -333,6 +337,7 @@ class PlaceHolderScriptInstance : public ScriptInstance {
 	Object *owner;
 	List<PropertyInfo> properties;
 	Map<StringName, Variant> values;
+	Map<StringName, Variant> constants;
 	ScriptLanguage *language;
 	Ref<Script> script;
 

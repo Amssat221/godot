@@ -360,9 +360,6 @@ static void _parser_show_block(const GDScriptParser::BlockNode *p_block, int p_i
 					case GDScriptParser::ControlFlowNode::CF_MATCH: {
 						// FIXME: Implement
 					} break;
-					case GDScriptParser::ControlFlowNode::CF_SWITCH: {
-
-					} break;
 					case GDScriptParser::ControlFlowNode::CF_CONTINUE: {
 
 						_print_indent(p_indent, "continue");
@@ -566,7 +563,7 @@ static void _disassemble_class(const Ref<GDScript> &p_class, const Vector<String
 				case GDScriptFunction::OPCODE_OPERATOR: {
 
 					int op = code[ip + 1];
-					txt += "op ";
+					txt += " op ";
 
 					String opname = Variant::get_operator_name(Variant::Operator(op));
 
@@ -1044,10 +1041,10 @@ MainLoop *test(TestType p_type) {
 
 	} else if (p_type == TEST_BYTECODE) {
 
-		Vector<uint8_t> buf = GDScriptTokenizerBuffer::parse_code_string(code);
+		Vector<uint8_t> buf2 = GDScriptTokenizerBuffer::parse_code_string(code);
 		String dst = test.get_basename() + ".gdc";
 		FileAccess *fw = FileAccess::open(dst, FileAccess::WRITE);
-		fw->store_buffer(buf.ptr(), buf.size());
+		fw->store_buffer(buf2.ptr(), buf2.size());
 		memdelete(fw);
 	}
 

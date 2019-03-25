@@ -30,14 +30,17 @@
 
 #ifndef OS_WINDOWS_H
 #define OS_WINDOWS_H
-#include "context_gl_win.h"
+
+#include "context_gl_windows.h"
 #include "core/os/input.h"
 #include "core/os/os.h"
 #include "core/project_settings.h"
-#include "crash_handler_win.h"
-#include "drivers/rtaudio/audio_driver_rtaudio.h"
+#include "crash_handler_windows.h"
+#include "drivers/unix/ip_unix.h"
 #include "drivers/wasapi/audio_driver_wasapi.h"
-#include "drivers/winmidi/win_midi.h"
+#include "drivers/winmidi/midi_driver_winmidi.h"
+#include "key_mapping_windows.h"
+#include "main/input_default.h"
 #include "power_windows.h"
 #include "servers/audio_server.h"
 #include "servers/visual/rasterizer.h"
@@ -45,9 +48,6 @@
 #ifdef XAUDIO2_ENABLED
 #include "drivers/xaudio2/audio_driver_xaudio2.h"
 #endif
-#include "drivers/unix/ip_unix.h"
-#include "key_mapping_win.h"
-#include "main/input_default.h"
 
 #include <fcntl.h>
 #include <io.h>
@@ -86,7 +86,7 @@ class OS_Windows : public OS {
 	int old_x, old_y;
 	Point2i center;
 #if defined(OPENGL_ENABLED)
-	ContextGL_Win *gl_context;
+	ContextGL_Windows *gl_context;
 #endif
 	VisualServer *visual_server;
 	int pressrc;
@@ -127,6 +127,7 @@ class OS_Windows : public OS {
 	bool window_has_focus;
 	uint32_t last_button_state;
 	bool use_raw_input;
+	bool drop_events;
 
 	HCURSOR cursors[CURSOR_MAX] = { NULL };
 	CursorShape cursor_shape;
@@ -140,9 +141,6 @@ class OS_Windows : public OS {
 	int video_driver_index;
 #ifdef WASAPI_ENABLED
 	AudioDriverWASAPI driver_wasapi;
-#endif
-#ifdef RTAUDIO_ENABLED
-	AudioDriverRtAudio driver_rtaudio;
 #endif
 #ifdef XAUDIO2_ENABLED
 	AudioDriverXAudio2 driver_xaudio2;
@@ -200,6 +198,7 @@ public:
 
 	virtual void warp_mouse_position(const Point2 &p_to);
 	virtual Point2 get_mouse_position() const;
+	void update_real_mouse_position();
 	virtual int get_mouse_button_state() const;
 	virtual void set_window_title(const String &p_title);
 
@@ -331,6 +330,8 @@ public:
 	void force_process_input();
 
 	virtual Error move_to_trash(const String &p_path);
+
+	virtual void process_and_drop_events();
 
 	OS_Windows(HINSTANCE _hInstance);
 	~OS_Windows();

@@ -434,22 +434,22 @@ private:
 
 		if (mode == MODE_RENAME) {
 
-			String dir = _test_path();
-			if (dir == "") {
+			String dir2 = _test_path();
+			if (dir2 == "") {
 				set_message(TTR("Invalid project path (changed anything?)."), MESSAGE_ERROR);
 				return;
 			}
 
 			ProjectSettings *current = memnew(ProjectSettings);
 
-			int err = current->setup(dir, "");
+			int err = current->setup(dir2, "");
 			if (err != OK) {
 				set_message(vformat(TTR("Couldn't load project.godot in project path (error %d). It may be missing or corrupted."), err), MESSAGE_ERROR);
 			} else {
 				ProjectSettings::CustomMap edited_settings;
 				edited_settings["application/config/name"] = project_name->get_text();
 
-				if (current->save_custom(dir.plus_file("project.godot"), edited_settings, Vector<String>(), true) != OK) {
+				if (current->save_custom(dir2.plus_file("project.godot"), edited_settings, Vector<String>(), true) != OK) {
 					set_message(TTR("Couldn't edit project.godot in project path."), MESSAGE_ERROR);
 				}
 			}
@@ -1422,6 +1422,7 @@ void ProjectManager::_on_projects_updated() {
 }
 
 void ProjectManager::_on_project_created(const String &dir) {
+	project_filter->clear();
 	bool has_already = false;
 	for (int i = 0; i < scroll_children->get_child_count(); i++) {
 		HBoxContainer *hb = Object::cast_to<HBoxContainer>(scroll_children->get_child(i));
@@ -1895,13 +1896,12 @@ ProjectManager::ProjectManager() {
 	Panel *panel = memnew(Panel);
 	gui_base->add_child(panel);
 	panel->set_anchors_and_margins_preset(Control::PRESET_WIDE);
+	panel->add_style_override("panel", gui_base->get_stylebox("Background", "EditorStyles"));
 
 	VBoxContainer *vb = memnew(VBoxContainer);
 	panel->add_child(vb);
-	vb->set_anchors_and_margins_preset(Control::PRESET_WIDE, Control::PRESET_MODE_MINSIZE, 20 * EDSCALE);
-	vb->set_margin(MARGIN_TOP, 4 * EDSCALE);
-	vb->set_margin(MARGIN_BOTTOM, -4 * EDSCALE);
-	vb->add_constant_override("separation", 15 * EDSCALE);
+	vb->set_anchors_and_margins_preset(Control::PRESET_WIDE, Control::PRESET_MODE_MINSIZE, 8 * EDSCALE);
+	vb->add_constant_override("separation", 8 * EDSCALE);
 
 	String cp;
 	cp += 0xA9;
@@ -1909,11 +1909,9 @@ ProjectManager::ProjectManager() {
 
 	HBoxContainer *top_hb = memnew(HBoxContainer);
 	vb->add_child(top_hb);
-	CenterContainer *ccl = memnew(CenterContainer);
 	Label *l = memnew(Label);
 	l->set_text(VERSION_NAME + String(" - ") + TTR("Project Manager"));
-	ccl->add_child(l);
-	top_hb->add_child(ccl);
+	top_hb->add_child(l);
 	top_hb->add_spacer();
 	l = memnew(Label);
 	String hash = String(VERSION_HASH);
@@ -2060,6 +2058,8 @@ ProjectManager::ProjectManager() {
 	settings_hb->set_h_grow_direction(Control::GROW_DIRECTION_BEGIN);
 
 	language_btn = memnew(OptionButton);
+	language_btn->set_flat(true);
+	language_btn->set_focus_mode(Control::FOCUS_NONE);
 
 	Vector<String> editor_languages;
 	List<PropertyInfo> editor_settings_properties;
@@ -2236,4 +2236,10 @@ ProjectListFilter::ProjectListFilter() {
 	add_child(filter_option);
 
 	has_search_box = false;
+}
+
+void ProjectListFilter::clear() {
+	if (has_search_box) {
+		search_box->clear();
+	}
 }

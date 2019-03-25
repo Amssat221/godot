@@ -110,7 +110,7 @@ static String dump_node_code(SL::Node *p_node, int p_level) {
 			for (Map<StringName, SL::ShaderNode::Uniform>::Element *E = pnode->uniforms.front(); E; E = E->next()) {
 
 				String ucode = "uniform ";
-				ucode += _prestr(E->get().precission);
+				ucode += _prestr(E->get().precision);
 				ucode += _typestr(E->get().type);
 				ucode += " " + String(E->key());
 
@@ -137,7 +137,7 @@ static String dump_node_code(SL::Node *p_node, int p_level) {
 			for (Map<StringName, SL::ShaderNode::Varying>::Element *E = pnode->varyings.front(); E; E = E->next()) {
 
 				String vcode = "varying ";
-				vcode += _prestr(E->get().precission);
+				vcode += _prestr(E->get().precision);
 				vcode += _typestr(E->get().type);
 				vcode += " " + String(E->key());
 
@@ -149,11 +149,11 @@ static String dump_node_code(SL::Node *p_node, int p_level) {
 
 				String header;
 				header = _typestr(fnode->return_type) + " " + fnode->name + "(";
-				for (int i = 0; i < fnode->arguments.size(); i++) {
+				for (int j = 0; j < fnode->arguments.size(); j++) {
 
-					if (i > 0)
+					if (j > 0)
 						header += ", ";
-					header += _prestr(fnode->arguments[i].precision) + _typestr(fnode->arguments[i].type) + " " + fnode->arguments[i].name;
+					header += _prestr(fnode->arguments[j].precision) + _typestr(fnode->arguments[j].type) + " " + fnode->arguments[j].name;
 				}
 
 				header += ")\n";
@@ -336,9 +336,9 @@ MainLoop *test() {
 		print_line("Error at line: " + rtos(sl.get_error_line()) + ": " + sl.get_error_text());
 		return NULL;
 	} else {
-		String code;
-		recreate_code(&code, sl.get_shader());
-		print_line("code:\n\n" + code);
+		String code2;
+		recreate_code(&code2, sl.get_shader());
+		print_line("code:\n\n" + code2);
 	}
 
 	return NULL;

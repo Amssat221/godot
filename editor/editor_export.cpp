@@ -42,7 +42,7 @@
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor_node.h"
 #include "editor_settings.h"
-#include "scene/resources/scene_format_text.h"
+#include "scene/resources/resource_format_text.h"
 #include "thirdparty/misc/md5.h"
 
 static int _get_pad(int p_alignment, int p_n) {
@@ -858,7 +858,7 @@ Error EditorExportPlatform::export_project_files(const Ref<EditorExportPreset> &
 		Vector<uint8_t> array = FileAccess::get_file_as_array(icon);
 		p_func(p_udata, icon, array, idx, total);
 	}
-	if (splash != String() && FileAccess::exists(splash)) {
+	if (splash != String() && FileAccess::exists(splash) && icon != splash) {
 		Vector<uint8_t> array = FileAccess::get_file_as_array(splash);
 		p_func(p_udata, splash, array, idx, total);
 	}
@@ -1160,6 +1160,30 @@ void EditorExport::add_export_preset(const Ref<EditorExportPreset> &p_preset, in
 		export_presets.insert(p_at_pos, p_preset);
 }
 
+String EditorExportPlatform::test_etc2() const {
+
+	String driver = ProjectSettings::get_singleton()->get("rendering/quality/driver/driver_name");
+	bool driver_fallback = ProjectSettings::get_singleton()->get("rendering/quality/driver/fallback_to_gles2");
+	bool etc_supported = ProjectSettings::get_singleton()->get("rendering/vram_compression/import_etc");
+	bool etc2_supported = ProjectSettings::get_singleton()->get("rendering/vram_compression/import_etc2");
+
+	if (driver == "GLES2" && !etc_supported) {
+		return TTR("Target platform requires 'ETC' texture compression for GLES2. Enable 'Import Etc' in Project Settings.");
+	} else if (driver == "GLES3") {
+		String err;
+		if (!etc2_supported) {
+			err += TTR("Target platform requires 'ETC2' texture compression for GLES3. Enable 'Import Etc 2' in Project Settings.");
+		}
+		if (driver_fallback && !etc_supported) {
+			if (err != String())
+				err += "\n";
+			err += TTR("Target platform requires 'ETC' texture compression for the driver fallback to GLES2.\nEnable 'Import Etc' in Project Settings, or disable 'Driver Fallback Enabled'.");
+		}
+		return err;
+	}
+	return String();
+}
+
 int EditorExport::get_export_preset_count() const {
 
 	return export_presets.size();
@@ -1441,6 +1465,10 @@ List<String> EditorExportPlatformPC::get_binary_extensions(const Ref<EditorExpor
 
 Error EditorExportPlatformPC::export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags) {
 	ExportNotifier notifier(*this, p_preset, p_debug, p_path, p_flags);
+
+	if (!DirAccess::exists(p_path.get_base_dir())) {
+		return ERR_FILE_BAD_PATH;
+	}
 
 	String custom_debug = p_preset->get("custom_template/debug");
 	String custom_release = p_preset->get("custom_template/release");

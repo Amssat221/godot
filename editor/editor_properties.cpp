@@ -115,8 +115,8 @@ void EditorPropertyMultilineText::_open_big_text() {
 		add_child(big_text_dialog);
 	}
 
-	big_text->set_text(text->get_text());
 	big_text_dialog->popup_centered_ratio();
+	big_text->set_text(text->get_text());
 }
 
 void EditorPropertyMultilineText::update_property() {
@@ -483,16 +483,16 @@ EditorPropertyCheck::EditorPropertyCheck() {
 
 void EditorPropertyEnum::_option_selected(int p_which) {
 
-	int val = options->get_item_metadata(p_which);
+	int64_t val = options->get_item_metadata(p_which);
 	emit_changed(get_edited_property(), val);
 }
 
 void EditorPropertyEnum::update_property() {
 
-	int which = get_edited_object()->get(get_edited_property());
+	int64_t which = get_edited_object()->get(get_edited_property());
 
 	for (int i = 0; i < options->get_item_count(); i++) {
-		if (which == (int)options->get_item_metadata(i)) {
+		if (which == (int64_t)options->get_item_metadata(i)) {
 			options->select(i);
 			return;
 		}
@@ -501,11 +501,11 @@ void EditorPropertyEnum::update_property() {
 
 void EditorPropertyEnum::setup(const Vector<String> &p_options) {
 
-	int current_val = 0;
+	int64_t current_val = 0;
 	for (int i = 0; i < p_options.size(); i++) {
 		Vector<String> text_split = p_options[i].split(":");
 		if (text_split.size() != 1)
-			current_val = text_split[1].to_int();
+			current_val = text_split[1].to_int64();
 		options->add_item(text_split[0]);
 		options->set_item_metadata(i, current_val);
 		current_val += 1;
@@ -665,10 +665,10 @@ public:
 
 					uint32_t idx = i * 10 + j;
 					bool on = value & (1 << idx);
-					Rect2 rect = Rect2(o, Size2(bsize, bsize));
+					Rect2 rect2 = Rect2(o, Size2(bsize, bsize));
 					color.a = on ? 0.6 : 0.2;
-					draw_rect(rect, color);
-					flag_rects.push_back(rect);
+					draw_rect(rect2, color);
+					flag_rects.push_back(rect2);
 				}
 			}
 		}
@@ -801,11 +801,11 @@ EditorPropertyLayers::EditorPropertyLayers() {
 void EditorPropertyInteger::_value_changed(double val) {
 	if (setting)
 		return;
-	emit_changed(get_edited_property(), int(val));
+	emit_changed(get_edited_property(), (int64_t)val);
 }
 
 void EditorPropertyInteger::update_property() {
-	int val = get_edited_object()->get(get_edited_property());
+	int64_t val = get_edited_object()->get(get_edited_property());
 	setting = true;
 	spin->set_value(val);
 	setting = false;
@@ -2190,7 +2190,7 @@ void EditorPropertyResource::_menu_option(int p_which) {
 			Object *obj = NULL;
 
 			if (ScriptServer::is_global_class(intype)) {
-				obj = ClassDB::instance(ScriptServer::get_global_class_base(intype));
+				obj = ClassDB::instance(ScriptServer::get_global_class_native_base(intype));
 				if (obj) {
 					Ref<Script> script = ResourceLoader::load(ScriptServer::get_global_class_path(intype));
 					if (script.is_valid()) {
@@ -2277,8 +2277,8 @@ void EditorPropertyResource::_update_menu_items() {
 			List<StringName> inheritors;
 			ClassDB::get_inheriters_from_class(base.strip_edges(), &inheritors);
 
-			for (int i = 0; i < custom_resources.size(); i++) {
-				inheritors.push_back(custom_resources[i].name);
+			for (int j = 0; j < custom_resources.size(); j++) {
+				inheritors.push_back(custom_resources[j].name);
 			}
 
 			List<StringName>::Element *E = inheritors.front();
@@ -2287,17 +2287,17 @@ void EditorPropertyResource::_update_menu_items() {
 				E = E->next();
 			}
 
-			for (Set<String>::Element *E = valid_inheritors.front(); E; E = E->next()) {
-				String t = E->get();
+			for (Set<String>::Element *F = valid_inheritors.front(); F; F = F->next()) {
+				String t = F->get();
 
 				bool is_custom_resource = false;
 				Ref<Texture> icon;
 				if (!custom_resources.empty()) {
-					for (int i = 0; i < custom_resources.size(); i++) {
-						if (custom_resources[i].name == t) {
+					for (int j = 0; j < custom_resources.size(); j++) {
+						if (custom_resources[j].name == t) {
 							is_custom_resource = true;
-							if (custom_resources[i].icon.is_valid())
-								icon = custom_resources[i].icon;
+							if (custom_resources[j].icon.is_valid())
+								icon = custom_resources[j].icon;
 							break;
 						}
 					}
@@ -2439,7 +2439,39 @@ void EditorPropertyResource::_button_input(const Ref<InputEvent> &p_event) {
 void EditorPropertyResource::_open_editor_pressed() {
 	RES res = get_edited_object()->get(get_edited_property());
 	if (res.is_valid()) {
-		EditorNode::get_singleton()->edit_item(res.ptr());
+		EditorNode::get_singleton()->call_deferred("edit_item_resource", res); //may clear the editor so do it deferred
+	}
+}
+
+void EditorPropertyResource::_fold_other_editors(Object *p_self) {
+
+	if (this == p_self) {
+		return;
+	}
+
+	RES res = get_edited_object()->get(get_edited_property());
+
+	if (!res.is_valid())
+		return;
+	bool use_editor = false;
+	for (int i = 0; i < EditorNode::get_singleton()->get_editor_data().get_editor_plugin_count(); i++) {
+		EditorPlugin *ep = EditorNode::get_singleton()->get_editor_data().get_editor_plugin(i);
+		if (ep->handles(res.ptr())) {
+			use_editor = true;
+		}
+	}
+
+	if (!use_editor)
+		return;
+	bool unfolded = get_edited_object()->editor_is_section_unfolded(get_edited_property());
+
+	opened_editor = false;
+
+	if (unfolded) {
+		//refold
+		assign->set_pressed(false);
+		get_edited_object()->editor_set_section_unfold(get_edited_property(), false);
+		update_property();
 	}
 }
 
@@ -2487,12 +2519,20 @@ void EditorPropertyResource::update_property() {
 				}
 
 				if (use_editor) {
+					//open editor directly and hide other open of these
+					_open_editor_pressed();
+					if (is_inside_tree()) {
+						get_tree()->call_deferred("call_group", "_editor_resource_properties", "_fold_other_editors", this);
+					}
+					opened_editor = true;
+					/*
 					Button *open_in_editor = memnew(Button);
 					open_in_editor->set_text(TTR("Open Editor"));
 					open_in_editor->set_icon(get_icon("Edit", "EditorIcons"));
 					sub_inspector_vbox->add_child(open_in_editor);
 					open_in_editor->connect("pressed", this, "_open_editor_pressed");
 					open_in_editor->set_h_size_flags(SIZE_SHRINK_CENTER);
+					*/
 				}
 			}
 
@@ -2506,6 +2546,10 @@ void EditorPropertyResource::update_property() {
 				memdelete(sub_inspector_vbox);
 				sub_inspector = NULL;
 				sub_inspector_vbox = NULL;
+				if (opened_editor) {
+					EditorNode::get_singleton()->hide_top_editors();
+					opened_editor = false;
+				}
 			}
 		}
 #endif
@@ -2547,7 +2591,8 @@ void EditorPropertyResource::_resource_selected() {
 
 	if (use_sub_inspector) {
 
-		get_edited_object()->editor_set_section_unfold(get_edited_property(), assign->is_pressed());
+		bool unfold = !get_edited_object()->editor_is_section_unfolded(get_edited_property());
+		get_edited_object()->editor_set_section_unfold(get_edited_property(), unfold);
 		update_property();
 	} else {
 
@@ -2726,10 +2771,12 @@ void EditorPropertyResource::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_button_draw"), &EditorPropertyResource::_button_draw);
 	ClassDB::bind_method(D_METHOD("_open_editor_pressed"), &EditorPropertyResource::_open_editor_pressed);
 	ClassDB::bind_method(D_METHOD("_button_input"), &EditorPropertyResource::_button_input);
+	ClassDB::bind_method(D_METHOD("_fold_other_editors"), &EditorPropertyResource::_fold_other_editors);
 }
 
 EditorPropertyResource::EditorPropertyResource() {
 
+	opened_editor = false;
 	sub_inspector = NULL;
 	sub_inspector_vbox = NULL;
 	use_sub_inspector = bool(EDITOR_GET("interface/inspector/open_resources_in_current_inspector"));
@@ -2766,6 +2813,8 @@ EditorPropertyResource::EditorPropertyResource() {
 	file = NULL;
 	scene_tree = NULL;
 	dropping = false;
+
+	add_to_group("_editor_resource_properties");
 }
 
 ////////////// DEFAULT PLUGIN //////////////////////
@@ -3162,12 +3211,11 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 			editor->setup(p_hint == PROPERTY_HINT_RESOURCE_TYPE ? p_hint_text : "Resource");
 
 			if (p_hint == PROPERTY_HINT_RESOURCE_TYPE) {
-				String open_in_new = EDITOR_GET("interface/inspector/resources_types_to_open_in_new_inspector");
+				String open_in_new = EDITOR_GET("interface/inspector/resources_to_open_in_new_inspector");
 				for (int i = 0; i < open_in_new.get_slice_count(","); i++) {
 					String type = open_in_new.get_slicec(',', i).strip_edges();
 					for (int j = 0; j < p_hint_text.get_slice_count(","); j++) {
 						String inherits = p_hint_text.get_slicec(',', j);
-
 						if (ClassDB::is_parent_class(inherits, type)) {
 
 							editor->set_use_sub_inspector(false);

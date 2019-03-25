@@ -287,7 +287,6 @@ void AnimationPlayer::_ensure_node_caches(AnimationData *p_anim) {
 						// broken track (nonexistent bone)
 						p_anim->node_cache[i]->skeleton = NULL;
 						p_anim->node_cache[i]->spatial = NULL;
-						printf("bone is %ls\n", String(bone_name).c_str());
 						ERR_CONTINUE(p_anim->node_cache[i]->bone_idx < 0);
 					}
 				} else {
@@ -991,25 +990,12 @@ void AnimationPlayer::remove_animation(const StringName &p_name) {
 
 void AnimationPlayer::_ref_anim(const Ref<Animation> &p_anim) {
 
-	if (used_anims.has(p_anim))
-		used_anims[p_anim]++;
-	else {
-		used_anims[p_anim] = 1;
-		Ref<Animation>(p_anim)->connect("changed", this, "_animation_changed");
-	}
+	Ref<Animation>(p_anim)->connect(SceneStringNames::get_singleton()->tracks_changed, this, "_animation_changed", varray(), CONNECT_REFERENCE_COUNTED);
 }
 
 void AnimationPlayer::_unref_anim(const Ref<Animation> &p_anim) {
 
-	ERR_FAIL_COND(!used_anims.has(p_anim));
-
-	int &n = used_anims[p_anim];
-	n--;
-	if (n == 0) {
-
-		Ref<Animation>(p_anim)->disconnect("changed", this, "_animation_changed");
-		used_anims.erase(p_anim);
-	}
+	Ref<Animation>(p_anim)->disconnect(SceneStringNames::get_singleton()->tracks_changed, this, "_animation_changed");
 }
 
 void AnimationPlayer::rename_animation(const StringName &p_name, const StringName &p_new_name) {
@@ -1146,8 +1132,6 @@ void AnimationPlayer::play_backwards(const StringName &p_name, float p_custom_bl
 
 void AnimationPlayer::play(const StringName &p_name, float p_custom_blend, float p_custom_scale, bool p_from_end) {
 
-	//printf("animation is %ls\n", String(p_name).c_str());
-	//ERR_FAIL_COND(!is_inside_scene());
 	StringName name = p_name;
 
 	if (String(name) == "")
@@ -1205,9 +1189,21 @@ void AnimationPlayer::play(const StringName &p_name, float p_custom_blend, float
 	_stop_playing_caches();
 
 	c.current.from = &animation_set[name];
-	c.current.pos = p_from_end ? c.current.from->animation->get_length() : 0;
+
+	if (c.assigned != name) { // reset
+		c.current.pos = p_from_end ? c.current.from->animation->get_length() : 0;
+	} else {
+		if (p_from_end && c.current.pos == 0) {
+			// Animation reset BUT played backwards, set position to the end
+			c.current.pos = c.current.from->animation->get_length();
+		} else if (!p_from_end && c.current.pos == c.current.from->animation->get_length()) {
+			// Animation resumed but already ended, set position to the beggining
+			c.current.pos = 0;
+		}
+	}
+
 	c.current.speed_scale = p_custom_scale;
-	c.assigned = p_name;
+	c.assigned = name;
 	c.seeked = false;
 	c.started = true;
 
@@ -1286,6 +1282,7 @@ void AnimationPlayer::stop(bool p_reset) {
 	if (p_reset) {
 		c.current.from = NULL;
 		c.current.speed_scale = 1;
+		c.current.pos = 0;
 	}
 	_set_process(false);
 	queued.clear();

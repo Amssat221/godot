@@ -29,6 +29,7 @@
 /*************************************************************************/
 
 #include "animation.h"
+#include "scene/scene_string_names.h"
 
 #include "core/math/geometry.h"
 
@@ -268,19 +269,19 @@ bool Animation::_set(const StringName &p_name, const Variant &p_value) {
 
 					for (int i = 0; i < valcount; i++) {
 
-						Dictionary d = clips[i];
-						if (!d.has("start_offset"))
+						Dictionary d2 = clips[i];
+						if (!d2.has("start_offset"))
 							continue;
-						if (!d.has("end_offset"))
+						if (!d2.has("end_offset"))
 							continue;
-						if (!d.has("stream"))
+						if (!d2.has("stream"))
 							continue;
 
 						TKey<AudioKey> ak;
 						ak.time = rt[i];
-						ak.value.start_offset = d["start_offset"];
-						ak.value.end_offset = d["end_offset"];
-						ak.value.stream = d["stream"];
+						ak.value.start_offset = d2["start_offset"];
+						ak.value.end_offset = d2["end_offset"];
+						ak.value.stream = d2["stream"];
 
 						ad->values.push_back(ak);
 					}
@@ -668,6 +669,7 @@ int Animation::add_track(TrackType p_type, int p_at_pos) {
 		}
 	}
 	emit_changed();
+	emit_signal(SceneStringNames::get_singleton()->tracks_changed);
 	return p_at_pos;
 }
 
@@ -719,6 +721,7 @@ void Animation::remove_track(int p_track) {
 	memdelete(t);
 	tracks.remove(p_track);
 	emit_changed();
+	emit_signal(SceneStringNames::get_singleton()->tracks_changed);
 }
 
 int Animation::get_track_count() const {
@@ -737,6 +740,7 @@ void Animation::track_set_path(int p_track, const NodePath &p_path) {
 	ERR_FAIL_INDEX(p_track, tracks.size());
 	tracks[p_track]->path = p_path;
 	emit_changed();
+	emit_signal(SceneStringNames::get_singleton()->tracks_changed);
 }
 
 NodePath Animation::track_get_path(int p_track) const {
@@ -1410,6 +1414,8 @@ void Animation::track_set_key_value(int p_track, int p_key_idx, const Variant &p
 
 		} break;
 	}
+
+	emit_changed();
 }
 
 void Animation::track_set_key_transition(int p_track, int p_key_idx, float p_transition) {
@@ -1445,6 +1451,8 @@ void Animation::track_set_key_transition(int p_track, int p_key_idx, float p_tra
 			// they don't use transition
 		} break;
 	}
+
+	emit_changed();
 }
 
 template <class K>
@@ -1828,9 +1836,14 @@ Variant Animation::value_track_interpolate(int p_track, float p_time) const {
 void Animation::_value_track_get_key_indices_in_range(const ValueTrack *vt, float from_time, float to_time, List<int> *p_indices) const {
 
 	if (from_time != length && to_time == length)
-		to_time = length * 1.01; //include a little more if at the end
+		to_time = length * 1.001; //include a little more if at the end
 	int to = _find(vt->values, to_time);
 
+	if (to >= 0 && from_time == to_time && vt->values[to].time == from_time) {
+		//find exact (0 delta), return if found
+		p_indices->push_back(to);
+		return;
+	}
 	// can't really send the events == time, will be sent in the next frame.
 	// if event>=len then it will probably never be requested by the anim player.
 
@@ -1876,7 +1889,7 @@ void Animation::value_track_get_key_indices(int p_track, float p_time, float p_d
 
 		if (from_time > to_time) {
 			// handle loop by splitting
-			_value_track_get_key_indices_in_range(vt, length - from_time, length, p_indices);
+			_value_track_get_key_indices_in_range(vt, from_time, length, p_indices);
 			_value_track_get_key_indices_in_range(vt, 0, to_time, p_indices);
 			return;
 		}
@@ -2554,6 +2567,7 @@ void Animation::track_move_up(int p_track) {
 	}
 
 	emit_changed();
+	emit_signal(SceneStringNames::get_singleton()->tracks_changed);
 }
 
 void Animation::track_set_imported(int p_track, bool p_imported) {
@@ -2588,6 +2602,7 @@ void Animation::track_move_down(int p_track) {
 		SWAP(tracks.write[p_track], tracks.write[p_track - 1]);
 	}
 	emit_changed();
+	emit_signal(SceneStringNames::get_singleton()->tracks_changed);
 }
 
 void Animation::track_swap(int p_track, int p_with_track) {
@@ -2598,6 +2613,7 @@ void Animation::track_swap(int p_track, int p_with_track) {
 		return;
 	SWAP(tracks.write[p_track], tracks.write[p_with_track]);
 	emit_changed();
+	emit_signal(SceneStringNames::get_singleton()->tracks_changed);
 }
 
 void Animation::set_step(float p_step) {
@@ -2716,6 +2732,8 @@ void Animation::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "loop"), "set_loop", "has_loop");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "step", PROPERTY_HINT_RANGE, "0,4096,0.001"), "set_step", "get_step");
 
+	ADD_SIGNAL(MethodInfo("tracks_changed"));
+
 	BIND_ENUM_CONSTANT(TYPE_VALUE);
 	BIND_ENUM_CONSTANT(TYPE_TRANSFORM);
 	BIND_ENUM_CONSTANT(TYPE_METHOD);
@@ -2740,6 +2758,8 @@ void Animation::clear() {
 	tracks.clear();
 	loop = false;
 	length = 1;
+	emit_changed();
+	emit_signal(SceneStringNames::get_singleton()->tracks_changed);
 }
 
 bool Animation::_transform_track_optimize_key(const TKey<TransformKey> &t0, const TKey<TransformKey> &t1, const TKey<TransformKey> &t2, float p_alowed_linear_err, float p_alowed_angular_err, float p_max_optimizable_angle, const Vector3 &p_norm) {

@@ -32,7 +32,7 @@
 #include "core/math/face3.h"
 #include "core/math/geometry.h"
 #include "core/os/os.h"
-#include "core/sort.h"
+#include "core/sort_array.h"
 #include "thirdparty/misc/triangulator.h"
 
 void CSGBrush::clear() {
@@ -666,14 +666,14 @@ void CSGBrushOperation::_add_poly_points(const BuildPoly &p_poly, int p_edge, in
 				if (opposite_point == prev_point)
 					continue; //not going back
 
-				EdgeSort e;
+				EdgeSort e2;
 				Vector2 local_vec = t2d.xform(p_poly.points[opposite_point].point);
-				e.angle = -local_vec.angle(); //negate so we can sort by minimum angle
-				e.edge = edge;
-				e.edge_point = opposite_point;
-				e.prev_point = to_point;
+				e2.angle = -local_vec.angle(); //negate so we can sort by minimum angle
+				e2.edge = edge;
+				e2.edge_point = opposite_point;
+				e2.prev_point = to_point;
 
-				next_edges.push_back(e);
+				next_edges.push_back(e2);
 			}
 
 			//finally, sort by minimum angle
@@ -953,13 +953,15 @@ void CSGBrushOperation::_merge_poly(MeshMerge &mesh, int p_face_idx, const Build
 
 					//duplicate point
 					int insert_at = with_outline_vertex;
-					polys.write[i].points.insert(insert_at, polys[i].points[insert_at]);
+					int point = polys[i].points[insert_at];
+					polys.write[i].points.insert(insert_at, point);
 					insert_at++;
 					//insert all others, outline should be backwards (must check)
 					int holesize = polys[i].holes[j].size();
 					for (int k = 0; k <= holesize; k++) {
 						int idx = (from_hole_vertex + k) % holesize;
-						polys.write[i].points.insert(insert_at, polys[i].holes[j][idx]);
+						int point2 = polys[i].holes[j][idx];
+						polys.write[i].points.insert(insert_at, point2);
 						insert_at++;
 					}
 

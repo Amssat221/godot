@@ -31,7 +31,7 @@
 #ifndef EDITOR_IMPORT_PLUGIN_H
 #define EDITOR_IMPORT_PLUGIN_H
 
-#include "core/io/resource_import.h"
+#include "core/io/resource_importer.h"
 
 class EditorImportPlugin : public ResourceImporter {
 	GDCLASS(EditorImportPlugin, Reference)
@@ -51,7 +51,7 @@ public:
 	virtual int get_import_order() const;
 	virtual void get_import_options(List<ImportOption> *r_options, int p_preset) const;
 	virtual bool get_option_visibility(const String &p_option, const Map<StringName, Variant> &p_options) const;
-	virtual Error import(const String &p_source_file, const String &p_save_path, const Map<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files);
+	virtual Error import(const String &p_source_file, const String &p_save_path, const Map<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files, Variant *r_metadata = NULL);
 };
 
 #endif //EDITOR_IMPORT_PLUGIN_H

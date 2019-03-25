@@ -84,15 +84,15 @@ Ref<TriangleMesh> Mesh::generate_triangle_mesh() const {
 			PoolVector<int> indices = a[ARRAY_INDEX];
 			PoolVector<int>::Read ir = indices.read();
 
-			for (int i = 0; i < ic; i++) {
-				int index = ir[i];
+			for (int j = 0; j < ic; j++) {
+				int index = ir[j];
 				facesw[widx++] = vr[index];
 			}
 
 		} else {
 
-			for (int i = 0; i < vc; i++)
-				facesw[widx++] = vr[i];
+			for (int j = 0; j < vc; j++)
+				facesw[widx++] = vr[j];
 		}
 	}
 
@@ -787,7 +787,6 @@ void ArrayMesh::add_surface_from_arrays(PrimitiveType p_primitive, const Array &
 	Surface s;
 
 	VisualServer::get_singleton()->mesh_add_surface_from_arrays(mesh, (VisualServer::PrimitiveType)p_primitive, p_arrays, p_blend_shapes, p_flags);
-	surfaces.push_back(s);
 
 	/* make aABB? */ {
 
@@ -808,8 +807,9 @@ void ArrayMesh::add_surface_from_arrays(PrimitiveType p_primitive, const Array &
 				aabb.expand_to(vtx[i]);
 		}
 
-		surfaces.write[surfaces.size() - 1].aabb = aabb;
-		surfaces.write[surfaces.size() - 1].is_2d = arr.get_type() == Variant::POOL_VECTOR2_ARRAY;
+		s.aabb = aabb;
+		s.is_2d = arr.get_type() == Variant::POOL_VECTOR2_ARRAY;
+		surfaces.push_back(s);
 
 		_recompute_aabb();
 	}
@@ -1026,34 +1026,6 @@ void ArrayMesh::set_custom_aabb(const AABB &p_custom) {
 AABB ArrayMesh::get_custom_aabb() const {
 
 	return custom_aabb;
-}
-
-void ArrayMesh::center_geometry() {
-
-	/*
-	Vector3 ofs = aabb.pos+aabb.size*0.5;
-
-	for(int i=0;i<get_surface_count();i++) {
-
-		PoolVector<Vector3> geom = surface_get_array(i,ARRAY_VERTEX);
-		int gc =geom.size();
-		PoolVector<Vector3>::Write w = geom.write();
-		surfaces[i].aabb.pos-=ofs;
-
-		for(int i=0;i<gc;i++) {
-
-			w[i]-=ofs;
-		}
-
-		w = PoolVector<Vector3>::Write();
-
-		surface_set_array(i,ARRAY_VERTEX,geom);
-
-	}
-
-	aabb.pos-=ofs;
-
-*/
 }
 
 void ArrayMesh::regen_normalmaps() {
@@ -1295,8 +1267,6 @@ void ArrayMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("create_trimesh_shape"), &ArrayMesh::create_trimesh_shape);
 	ClassDB::bind_method(D_METHOD("create_convex_shape"), &ArrayMesh::create_convex_shape);
 	ClassDB::bind_method(D_METHOD("create_outline", "margin"), &ArrayMesh::create_outline);
-	ClassDB::bind_method(D_METHOD("center_geometry"), &ArrayMesh::center_geometry);
-	ClassDB::set_method_flags(get_class_static(), _scs_create("center_geometry"), METHOD_FLAGS_DEFAULT | METHOD_FLAG_EDITOR);
 	ClassDB::bind_method(D_METHOD("regen_normalmaps"), &ArrayMesh::regen_normalmaps);
 	ClassDB::set_method_flags(get_class_static(), _scs_create("regen_normalmaps"), METHOD_FLAGS_DEFAULT | METHOD_FLAG_EDITOR);
 	ClassDB::bind_method(D_METHOD("lightmap_unwrap", "transform", "texel_size"), &ArrayMesh::lightmap_unwrap);

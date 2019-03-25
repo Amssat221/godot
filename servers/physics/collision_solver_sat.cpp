@@ -821,9 +821,9 @@ static void _collision_box_capsule(const ShapeSW *p_a, const Transform &p_transf
 
 		// test edges of A
 
-		for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
 
-			Vector3 axis = point_axis.cross(p_transform_a.basis.get_axis(i)).cross(p_transform_a.basis.get_axis(i)).normalized();
+			Vector3 axis = point_axis.cross(p_transform_a.basis.get_axis(j)).cross(p_transform_a.basis.get_axis(j)).normalized();
 
 			if (!separator.test_axis(axis))
 				return;
@@ -1337,7 +1337,7 @@ static void _collision_convex_polygon_convex_polygon(const ShapeSW *p_a, const T
 					return;
 			}
 		}
-		//edge-vertex( hsell)
+		//edge-vertex (shell)
 
 		for (int i = 0; i < edge_count_A; i++) {
 
@@ -1438,7 +1438,7 @@ static void _collision_convex_polygon_face(const ShapeSW *p_a, const Transform &
 					return;
 			}
 		}
-		//edge-vertex( hsell)
+		//edge-vertex (shell)
 
 		for (int i = 0; i < edge_count; i++) {
 

@@ -31,12 +31,11 @@
 #ifndef VISUAL_SERVER_RASTER_H
 #define VISUAL_SERVER_RASTER_H
 
-#include "core/allocators.h"
 #include "core/math/octree.h"
 #include "servers/visual/rasterizer.h"
 #include "servers/visual_server.h"
 #include "visual_server_canvas.h"
-#include "visual_server_global.h"
+#include "visual_server_globals.h"
 #include "visual_server_scene.h"
 #include "visual_server_viewport.h"
 /**
@@ -297,6 +296,7 @@ public:
 	BIND3(skeleton_bone_set_transform_2d, RID, int, const Transform2D &)
 	BIND2RC(Transform2D, skeleton_bone_get_transform_2d, RID, int)
 	BIND2(skeleton_set_base_transform_2d, RID, const Transform2D &)
+	BIND3(skeleton_set_world_transform, RID, bool, const Transform &)
 
 	/* Light API */
 
