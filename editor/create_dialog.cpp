@@ -749,7 +749,7 @@ CreateDialog::CreateDialog() {
 	preferred_search_result_type = "";
 
 	help_bit = memnew(EditorHelpBit);
-	vbc->add_margin_child(TTR("Description:"), help_bit);
+	//vbc->add_margin_child(TTR("Description:"), help_bit);
 	help_bit->connect("request_hide", this, "_closed");
 
 	type_blacklist.insert("PluginScript"); // PluginScript must be initialized before use, which is not possible here
